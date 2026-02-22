@@ -38,5 +38,5 @@ jobs:
           # We tell Wrangler to deploy the files created in the previous step
           command: deploy
         env:
-          # This ensures the key is available to the deployed worker
+          # This ensures the key is available to the deployed workers
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
