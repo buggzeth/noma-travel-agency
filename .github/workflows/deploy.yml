@@ -1,0 +1,34 @@
+name: Deploy to Cloudflare Workers
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy
+    steps:
+      - uses: actions/checkout@v4
+
+      # Setup Node.js
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Install Dependencies
+      - name: Install Dependencies
+        run: npm install
+
+      # Run the Deploy Command (This is the one that failed on Windows)
+      # It works here because GitHub runs on Linux!
+      - name: Deploy to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: npm run deploy
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
