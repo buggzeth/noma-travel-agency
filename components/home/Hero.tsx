@@ -96,16 +96,27 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Floating Bottom Right Button for original Chatbot */}
-        <button
-          onClick={() => setIsChatOpen(true)}
-          className={`fixed bottom-6 right-6 z-40 bg-foreground text-background border border-border/50 shadow-2xl flex items-center gap-3 px-6 py-4 uppercase text-xs tracking-widest hover:bg-foreground/90 transition-transform duration-500 ${
-            isChatOpen || isPlanOverlayOpen ? "translate-y-24 opacity-0 pointer-events-none" : "translate-y-0 opacity-100"
+        {/* Floating Bottom Right Buttons */}
+        <div 
+          className={`fixed bottom-6 right-6 z-40 flex flex-col sm:flex-row items-end sm:items-center gap-3 transition-transform duration-500 ${
+            isChatOpen || isPlanOverlayOpen ? "translate-y-32 opacity-0 pointer-events-none" : "translate-y-0 opacity-100"
           }`}
         >
-          <MessageSquare className="h-4 w-4" />
-          Ask Concierge
-        </button>
+          <button
+            onClick={() => setIsPlanOverlayOpen(true)}
+            className="bg-background text-foreground border border-black/50 shadow-xl flex items-center gap-3 px-6 py-4 uppercase text-xs tracking-widest hover:bg-muted transition-colors"
+          >
+            <Sparkles className="h-4 w-4" />
+            Plan Trip
+          </button>
+          <button
+            onClick={() => setIsChatOpen(true)}
+            className="bg-foreground text-background border border-border/50 shadow-xl flex items-center gap-3 px-6 py-4 uppercase text-xs tracking-widest hover:bg-foreground/90 transition-colors"
+          >
+            <MessageSquare className="h-4 w-4" />
+            Ask Concierge
+          </button>
+        </div>
       </section>
 
       {/* Structured Travel Plan Generator Overlay */}

@@ -145,6 +145,20 @@ export default function AITravelPlanOverlay({
       setActiveSessionId(newSession.id);
       
       setAppState("result");
+
+      // Clear the form after successful generation
+      setFormData({ 
+        destination: "", timing: "", days: "5", 
+        adults: "2", children: "0", tripType: "Leisure / Vacation",
+        pace: "Balanced & Flexible", budget: "Moderate / Mid-Range", accommodation: "Boutique Hotel",
+        dietary: [], accessibility: [], showOtherDietary: false, otherDietary: "", 
+        showOtherAccessibility: false, otherAccessibility: "", additionalRequests: ""
+      });
+      setQuizAnswers({
+        hiddenGems: null, wellness: null, culinary: null, adventure: null,
+        nightlife: null, sustainability: null, culture: null
+      });
+
     } catch (error) {
       console.error(error);
       setAppState("form"); 
