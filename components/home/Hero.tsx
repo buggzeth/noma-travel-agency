@@ -2,18 +2,16 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+// Image import can be removed if you don't use it elsewhere in this file
 import { Sparkles, MessageSquare, ArrowRight, MapPin } from "lucide-react";
 import { STATS } from "@/lib/mock-data";
 import AIChatOverlay from "./AIChatOverlay";
 import AITravelPlanOverlay from "./AITravelPlanOverlay";
 
 export default function Hero() {
-  // State for the original unstructured Chatbot (floating button)
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [initialMessage, setInitialMessage] = useState("");
 
-  // State for the new Structured Travel Plan Builder (hero center input)
   const [isPlanOverlayOpen, setIsPlanOverlayOpen] = useState(false);
   const [destinationInput, setDestinationInput] = useState("");
   const [submittedDestination, setSubmittedDestination] = useState("");
@@ -22,7 +20,6 @@ export default function Hero() {
     e.preventDefault();
     if (!destinationInput.trim()) return;
     
-    // Pass destination to the new structured AI pipeline overlay
     setSubmittedDestination(destinationInput);
     setIsPlanOverlayOpen(true);
     setDestinationInput(""); 
@@ -31,15 +28,22 @@ export default function Hero() {
   return (
     <>
       <section className="relative min-h-[90vh] flex flex-col items-center justify-center text-center px-4 sm:px-6 py-20 w-full overflow-hidden">
-        {/* Background Image */}
+        
+        {/* Background Video */}
         <div className="absolute inset-0 z-0">
-          <Image
-            src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2070&auto=format&fit=crop"
-            alt="Luxury travel destination"
-            fill
-            className="object-cover"
-            priority
-          />
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            /* The poster acts as a fallback image while the video loads */
+            poster="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2070&auto=format&fit=crop"
+            className="w-full h-full object-cover"
+          >
+            {/* Fallback MP4 for Safari/iOS */}
+            <source src="/hero-bg.mp4" type="video/mp4" />
+          </video>
+          {/* Dark overlay to make the text pop */}
           <div className="absolute inset-0 bg-black/40" />
         </div>
 
