@@ -9,9 +9,11 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-
+dev.vars
 # testing
 /coverage
+.open-next
+
 
 # next.js
 /.next/
