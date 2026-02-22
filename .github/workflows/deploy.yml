@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-  workflow_dispatch:
 
 jobs:
   deploy:
@@ -14,30 +13,30 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 1. Install PNPM
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      # 2. Setup Node (with caching for pnpm)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'pnpm'
 
-      # 3. Install Dependencies (using pnpm)
       - name: Install Dependencies
-        run: pnpm install
+        run: npm ci
 
-      # 4. Deploy to Cloudflare
+      # 1. BUILD THE APP (This generates the .open-next folder)
+      - name: Build with OpenNext
+        run: npx opennextjs-cloudflare build
+        env:
+          # We pass these to ensure the build doesn't crash if it tries to access them
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }} 
+
+      # 2. DEPLOY TO CLOUDFLARE
+      # We use the official action to handle the upload
       - name: Deploy to Cloudflare
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          packageManager: pnpm
-          command: run deploy
+          # We tell Wrangler to deploy the files created in the previous step
+          command: deploy
         env:
+          # This ensures the key is available to the deployed workers
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
