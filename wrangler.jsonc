@@ -1,7 +1,7 @@
 {
     "$schema": "node_modules/wrangler/config-schema.json",
-    "main": ".open-next/worker.js",
     "name": "noma-travel-app",
+    "main": ".open-next/worker.js",
     "compatibility_date": "2024-12-30",
     "compatibility_flags": [
         "nodejs_compat",
@@ -17,7 +17,6 @@
             "service": "noma-travel-app"
         }
     ],
-    // R2 BUCKETS REMOVED FROM HERE
     "images": {
         "binding": "IMAGES"
     }
