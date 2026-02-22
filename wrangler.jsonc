@@ -17,6 +17,7 @@
             "service": "noma-travel-app"
         }
     ],
+    // R2 BUCKETS REMOVED FROM HERE
     "images": {
         "binding": "IMAGES"
     }

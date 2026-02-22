@@ -1,7 +1,12 @@
-// default open-next.config.ts file created by @opennextjs/cloudflare
-import { defineCloudflareConfig } from "@opennextjs/cloudflare/config";
-import r2IncrementalCache from "@opennextjs/cloudflare/overrides/incremental-cache/r2-incremental-cache";
+import { defineCloudflareConfig } from "@opennextjs/cloudflare";
 
 export default defineCloudflareConfig({
-	incrementalCache: r2IncrementalCache,
+  // We provide a minimal implementation that satisfies the IncrementalCache interface
+  // This effectively disables caching but allows the build to proceed without R2.
+  incrementalCache: async () => ({
+    name: "disabled-cache",
+    get: async (key) => null,
+    set: async (key, value) => {},
+    delete: async (key) => {},
+  }),
 });
