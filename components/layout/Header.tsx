@@ -41,24 +41,6 @@ export default function Header() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-3 md:gap-5 z-50">
-          <button
-            aria-label="Search"
-            className="text-foreground/70 hover:text-foreground transition-colors p-2 md:p-0"
-          >
-            <Search className="h-5 w-5" />
-          </button>
-          <Link
-            href="#"
-            className="hidden lg:inline-block text-sm uppercase tracking-widest hover:text-foreground/70 transition-colors"
-          >
-            Book with NOMA
-          </Link>
-          <Link
-            href="#"
-            className="hidden sm:inline-block rounded-none bg-foreground text-background px-6 py-3 text-sm uppercase tracking-widest hover:bg-foreground/90 transition-colors"
-          >
-            Advise
-          </Link>
 
           {/* Mobile Menu Toggle */}
           <button
@@ -85,7 +67,7 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
-            
+
             <div className="flex flex-col gap-4 mt-4 pt-4 border-t border-border/50">
               <Link
                 href="#"
