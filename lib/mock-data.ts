@@ -54,9 +54,9 @@ export const CATEGORIES = [
   { name: "Itineraries", imageUrl: "https://images.unsplash.com/photo-1551878736-72273e51025c?q=80" },
   { name: "Cruises", imageUrl: "https://images.unsplash.com/photo-1688269910608-e3c65eb4ac3a?q=80" },
   { name: "Safaris", imageUrl: "https://images.unsplash.com/photo-1521651201144-634f700b36ef?q=80" },
-  { name: "Honeymoons", imageUrl: "https://images.unsplash.com/photo-1494137319847-a9592a0e73ed?q=80" },
+  { name: "Honeymoons", imageUrl: "https://images.unsplash.com/photo-1535913989690-f90e1c2d4cfa?q=80" },
   { name: "Adventure", imageUrl: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80" },
-  { name: "Wellness", imageUrl: "https://images.unsplash.com/photo-1598468872842-d39d85892daf?q=80" },
+  { name: "Wellness", imageUrl: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80" },
   { name: "Family", imageUrl: "https://images.unsplash.com/photo-1687660187066-dc7e95eb3c5e?q=80" },
   { name: "Villas", imageUrl: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80" },
   { name: "Private Jets", imageUrl: "https://images.unsplash.com/photo-1678419214383-2391a9118c24?q=80" },
@@ -201,9 +201,9 @@ export const PERKS = [
   { title: "Complimentary Upgrades", imageUrl: "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=600&h=400&fit=crop", description: "Enjoy automatic room upgrades at over 2,000 luxury properties worldwide." },
   { title: "Resort Credits", imageUrl: "https://images.unsplash.com/photo-1544148103-0773bf10d330?w=600&h=400&fit=crop", description: "Receive $100–$500 in resort credits for spa, dining, and experiences." },
   { title: "Early Check-In & Late Checkout", imageUrl: "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=600&h=400&fit=crop", description: "Arrive on your schedule with priority early check-in and late checkout privileges." },
-  { title: "VIP Welcome Amenities", imageUrl: "https://images.unsplash.com/photo-1502899576159-f224dc2349fa?w=600&h=400&fit=crop", description: "Be greeted with a personalized welcome — from champagne to local artisan gifts." },
+  { title: "VIP Welcome Amenities", imageUrl: "https://images.unsplash.com/photo-1771775751121-3091d79073d4?q=80", description: "Be greeted with a personalized welcome — from champagne to local artisan gifts." },
   { title: "Dedicated Trip Support", imageUrl: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&h=400&fit=crop", description: "Your advisor is available around the clock, from planning through your return home." },
-  { title: "Exclusive Experiences", imageUrl: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=600&h=400&fit=crop", description: "Access private tours, chef's tables, and behind-the-scenes cultural experiences." },
+  { title: "Exclusive Experiences", imageUrl: "https://images.unsplash.com/photo-1763696119077-e6b90c71204e?q=80", description: "Access private tours, chef's tables, and behind-the-scenes cultural experiences." },
 ];
 
 export const HOW_IT_WORKS_STEPS = [

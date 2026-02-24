@@ -15,7 +15,6 @@ export default function HowItWorks() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-12 px-8 max-w-6xl mx-auto">
         {HOW_IT_WORKS_STEPS.map((step) => (
           <div key={step.number} className="relative overflow-hidden group border border-border/50 min-h-[400px] flex flex-col justify-end p-8">
-            <AnimatedBorder />
             {step.imageUrl && (
               <Image
                 src={step.imageUrl}

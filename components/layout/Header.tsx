@@ -17,9 +17,9 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
-      <div className="flex justify-between items-center px-4 md:px-8 py-4 max-w-7xl mx-auto">
+      <div className="flex justify-between items-center px-4 md:px-8 py-0 pb-1 max-w-7xl mx-auto">
         {/* Logo */}
-        <Link href="/" className="text-2xl md:text-3xl font-serif text-foreground tracking-tight z-50">
+        <Link href="/" className="text-5xl md:text-5xl font-serif text-foreground tracking-tighter z-50">
           NOMA
         </Link>
 

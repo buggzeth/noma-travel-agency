@@ -1,12 +1,20 @@
 // app/api/generate-plan/route.ts
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
 
+// Initialize Supabase admin client (bypasses RLS for backend insertions)
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
+
 const travelPlanSchema = {
+  // ... Keep your exact existing travelPlanSchema here ...
   type: "object",
   properties: {
     destination: { type: "string" },
@@ -113,8 +121,29 @@ export async function POST(req: NextRequest) {
 
     const text = response.text;
     if (!text) throw new Error("No response generated.");
+    
+    const planData = JSON.parse(text);
 
-    return new Response(text, {
+    // Create a unique SEO slug (e.g., "kyoto-japan-5-days-x8a92")
+    const cleanDest = planData.destination.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    const randomHash = Math.random().toString(36).substring(2, 7);
+    const slug = `${cleanDest}-${days}-days-${randomHash}`;
+
+    // Upload to Supabase (we don't await this strictly to keep the user response fast, 
+    // but catching errors so it doesn't crash the API)
+    const { error } = await supabase.from('travel_plans').insert({
+      slug,
+      destination: planData.destination,
+      plan_data: planData
+    });
+
+    if (error) {
+      console.error("[Supabase Insert Error]:", error);
+      // We still return the planData to the user even if DB insert fails
+    }
+
+    // Return the generated data PLUS the slug so the frontend knows the URL
+    return new Response(JSON.stringify({ ...planData, slug }), {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error: any) {

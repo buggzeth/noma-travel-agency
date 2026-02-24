@@ -2,9 +2,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Sparkles, Loader2, History, MapPin, Calendar, Users, Check, Plus, DollarSign } from "lucide-react";
+import { X, Sparkles, Loader2, History, MapPin, Calendar, Users, Check, Plus, DollarSign, ArrowUpRight } from "lucide-react";
 
 export type TravelPlan = {
+  slug?: string;
   destination: string;
   summary: string;
   estimatedCost: string;
@@ -105,17 +106,17 @@ export default function AITravelPlanOverlay({
     if (!formData.destination.trim() || !formData.timing.trim()) return;
 
     setAppState("loading");
-    
+
     try {
       // Format arrays into comma-separated strings for the backend
       const payload = {
         ...formData,
         dietary: [
-          ...formData.dietary, 
+          ...formData.dietary,
           formData.showOtherDietary ? formData.otherDietary.trim() : ""
         ].filter(Boolean).join(", "),
         accessibility: [
-          ...formData.accessibility, 
+          ...formData.accessibility,
           formData.showOtherAccessibility ? formData.otherAccessibility.trim() : ""
         ].filter(Boolean).join(", "),
         quiz: quizAnswers
@@ -128,30 +129,30 @@ export default function AITravelPlanOverlay({
       });
 
       if (!response.ok) throw new Error("Failed to generate plan");
-      
+
       const planData: TravelPlan = await response.json();
       setCurrentPlan(planData);
-      
+
       const newSession: PlanSession = {
         id: Date.now().toString(),
         title: `${planData.destination} (${formData.days} Days)`,
         plan: planData,
         createdAt: Date.now(),
       };
-      
+
       const updatedSessions = [newSession, ...sessions];
       setSessions(updatedSessions);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedSessions));
       setActiveSessionId(newSession.id);
-      
+
       setAppState("result");
 
       // Clear the form after successful generation
-      setFormData({ 
-        destination: "", timing: "", days: "5", 
+      setFormData({
+        destination: "", timing: "", days: "5",
         adults: "2", children: "0", tripType: "Leisure / Vacation",
         pace: "Balanced & Flexible", budget: "Moderate / Mid-Range", accommodation: "Boutique Hotel",
-        dietary: [], accessibility: [], showOtherDietary: false, otherDietary: "", 
+        dietary: [], accessibility: [], showOtherDietary: false, otherDietary: "",
         showOtherAccessibility: false, otherAccessibility: "", additionalRequests: ""
       });
       setQuizAnswers({
@@ -161,7 +162,7 @@ export default function AITravelPlanOverlay({
 
     } catch (error) {
       console.error(error);
-      setAppState("form"); 
+      setAppState("form");
       alert("There was an error generating your travel plan. Please try again.");
     }
   };
@@ -180,11 +181,11 @@ export default function AITravelPlanOverlay({
     setActiveSessionId(null);
     setCurrentPlan(null);
     setAppState("form");
-    setFormData({ 
-      destination: "", timing: "", days: "5", 
+    setFormData({
+      destination: "", timing: "", days: "5",
       adults: "2", children: "0", tripType: "Leisure / Vacation",
       pace: "Balanced & Flexible", budget: "Moderate / Mid-Range", accommodation: "Boutique Hotel",
-      dietary: [], accessibility: [], showOtherDietary: false, otherDietary: "", 
+      dietary: [], accessibility: [], showOtherDietary: false, otherDietary: "",
       showOtherAccessibility: false, otherAccessibility: "", additionalRequests: ""
     });
     setQuizAnswers({
@@ -207,7 +208,7 @@ export default function AITravelPlanOverlay({
 
   return (
     <div className={`fixed top-0 left-0 z-[100] w-full h-[100dvh] bg-background flex overflow-hidden transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${isOpen ? "translate-x-0 shadow-2xl" : "translate-x-full"}`}>
-      
+
       {/* Mobile Backdrop for Sidebar */}
       {showHistoryMobile && (
         <div className="md:hidden absolute inset-0 z-30 bg-black/40 backdrop-blur-sm transition-opacity duration-300" onClick={() => setShowHistoryMobile(false)} />
@@ -221,13 +222,13 @@ export default function AITravelPlanOverlay({
             <X className="h-5 w-5" />
           </button>
         </div>
-        
+
         <div className="flex-1 overflow-y-auto p-4 space-y-2 hide-scrollbar bg-background md:bg-transparent">
           <button onClick={startNewPlan} className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-border/50 text-sm font-medium hover:bg-foreground hover:text-background transition-colors">
             <Plus className="h-4 w-4" />
             NEW TRAVEL PLAN
           </button>
-          
+
           <div className="pt-4 space-y-2">
             <p className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold px-2 mb-2">Previous Plans</p>
             {sessions.map((session) => (
@@ -263,7 +264,7 @@ export default function AITravelPlanOverlay({
         </header>
 
         <div className="flex-1 overflow-y-auto hide-scrollbar relative">
-          
+
           {/* STATE: LOADING */}
           {appState === "loading" && (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-8 animate-in fade-in duration-700">
@@ -287,31 +288,31 @@ export default function AITravelPlanOverlay({
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-10">
-                
+
                 {/* 1. Core Logistics Section */}
                 <div className="bg-secondary/20 p-6 md:p-8 border border-border/50 space-y-6">
                   <div className="space-y-3">
                     <label className="text-xs uppercase tracking-widest font-semibold flex items-center gap-2"><MapPin className="h-4 w-4" /> Where are we heading?</label>
-                    <input required type="text" value={formData.destination} onChange={e => setFormData({...formData, destination: e.target.value})} placeholder="e.g. Kyoto, Japan or The Amalfi Coast" className="w-full bg-transparent border-b border-border/50 px-0 py-2 text-xl font-serif focus:outline-none focus:border-foreground transition-colors placeholder:text-foreground/30" />
+                    <input required type="text" value={formData.destination} onChange={e => setFormData({ ...formData, destination: e.target.value })} placeholder="e.g. Kyoto, Japan or The Amalfi Coast" className="w-full bg-transparent border-b border-border/50 px-0 py-2 text-xl font-serif focus:outline-none focus:border-foreground transition-colors placeholder:text-foreground/30" />
                   </div>
 
                   <div className="space-y-3">
                     <label className="text-xs uppercase tracking-widest font-semibold flex items-center gap-2"><Calendar className="h-4 w-4" /> When are we packing our bags?</label>
-                    <input required type="text" value={formData.timing} onChange={e => setFormData({...formData, timing: e.target.value})} placeholder="e.g. Next Summer, Mid-October, or specific dates" className="w-full bg-transparent border-b border-border/50 px-0 py-2 text-lg focus:outline-none focus:border-foreground transition-colors placeholder:text-foreground/30 font-light" />
+                    <input required type="text" value={formData.timing} onChange={e => setFormData({ ...formData, timing: e.target.value })} placeholder="e.g. Next Summer, Mid-October, or specific dates" className="w-full bg-transparent border-b border-border/50 px-0 py-2 text-lg focus:outline-none focus:border-foreground transition-colors placeholder:text-foreground/30 font-light" />
                   </div>
 
                   <div className="grid grid-cols-3 gap-6 pt-2">
                     <div className="space-y-3">
                       <label className="text-xs uppercase tracking-widest font-semibold">Total Days</label>
-                      <input required type="number" min="1" max="60" value={formData.days} onChange={e => setFormData({...formData, days: e.target.value})} className="w-full bg-transparent border-b border-border/50 px-0 py-2 text-lg focus:outline-none focus:border-foreground transition-colors" />
+                      <input required type="number" min="1" max="60" value={formData.days} onChange={e => setFormData({ ...formData, days: e.target.value })} className="w-full bg-transparent border-b border-border/50 px-0 py-2 text-lg focus:outline-none focus:border-foreground transition-colors" />
                     </div>
                     <div className="space-y-3">
                       <label className="text-xs uppercase tracking-widest font-semibold flex items-center gap-2"><Users className="h-4 w-4" /> Adults</label>
-                      <input required type="number" min="1" max="20" value={formData.adults} onChange={e => setFormData({...formData, adults: e.target.value})} className="w-full bg-transparent border-b border-border/50 px-0 py-2 text-lg focus:outline-none focus:border-foreground transition-colors" />
+                      <input required type="number" min="1" max="20" value={formData.adults} onChange={e => setFormData({ ...formData, adults: e.target.value })} className="w-full bg-transparent border-b border-border/50 px-0 py-2 text-lg focus:outline-none focus:border-foreground transition-colors" />
                     </div>
                     <div className="space-y-3">
                       <label className="text-xs uppercase tracking-widest font-semibold">Children</label>
-                      <input required type="number" min="0" max="20" value={formData.children} onChange={e => setFormData({...formData, children: e.target.value})} className="w-full bg-transparent border-b border-border/50 px-0 py-2 text-lg focus:outline-none focus:border-foreground transition-colors" />
+                      <input required type="number" min="0" max="20" value={formData.children} onChange={e => setFormData({ ...formData, children: e.target.value })} className="w-full bg-transparent border-b border-border/50 px-0 py-2 text-lg focus:outline-none focus:border-foreground transition-colors" />
                     </div>
                   </div>
                 </div>
@@ -319,7 +320,7 @@ export default function AITravelPlanOverlay({
                 {/* 2. Travel Style & Budget */}
                 <div className="bg-secondary/10 p-6 md:p-8 border border-border/50 space-y-8">
                   <h3 className="text-sm font-semibold uppercase tracking-widest border-b border-border/50 pb-3 mb-4">Travel Style & Budget</h3>
-                  
+
                   <div className="flex flex-col gap-8">
                     {/* Trip Purpose */}
                     <div className="space-y-3">
@@ -330,11 +331,10 @@ export default function AITravelPlanOverlay({
                             key={option}
                             type="button"
                             onClick={() => setFormData({ ...formData, tripType: option })}
-                            className={`px-4 py-2 text-xs tracking-wider transition-all border ${
-                              formData.tripType === option
-                                ? "bg-foreground text-background border-foreground"
-                                : "bg-transparent text-foreground border-border hover:border-foreground/50"
-                            }`}
+                            className={`px-4 py-2 text-xs tracking-wider transition-all border ${formData.tripType === option
+                              ? "bg-foreground text-background border-foreground"
+                              : "bg-transparent text-foreground border-border hover:border-foreground/50"
+                              }`}
                           >
                             {option}
                           </button>
@@ -351,11 +351,10 @@ export default function AITravelPlanOverlay({
                             key={option}
                             type="button"
                             onClick={() => setFormData({ ...formData, pace: option })}
-                            className={`px-4 py-2 text-xs tracking-wider transition-all border ${
-                              formData.pace === option
-                                ? "bg-foreground text-background border-foreground"
-                                : "bg-transparent text-foreground border-border hover:border-foreground/50"
-                            }`}
+                            className={`px-4 py-2 text-xs tracking-wider transition-all border ${formData.pace === option
+                              ? "bg-foreground text-background border-foreground"
+                              : "bg-transparent text-foreground border-border hover:border-foreground/50"
+                              }`}
                           >
                             {option}
                           </button>
@@ -372,11 +371,10 @@ export default function AITravelPlanOverlay({
                             key={option}
                             type="button"
                             onClick={() => setFormData({ ...formData, budget: option })}
-                            className={`px-4 py-2 text-xs tracking-wider transition-all border ${
-                              formData.budget === option
-                                ? "bg-foreground text-background border-foreground"
-                                : "bg-transparent text-foreground border-border hover:border-foreground/50"
-                            }`}
+                            className={`px-4 py-2 text-xs tracking-wider transition-all border ${formData.budget === option
+                              ? "bg-foreground text-background border-foreground"
+                              : "bg-transparent text-foreground border-border hover:border-foreground/50"
+                              }`}
                           >
                             {option}
                           </button>
@@ -393,11 +391,10 @@ export default function AITravelPlanOverlay({
                             key={option}
                             type="button"
                             onClick={() => setFormData({ ...formData, accommodation: option })}
-                            className={`px-4 py-2 text-xs tracking-wider transition-all border ${
-                              formData.accommodation === option
-                                ? "bg-foreground text-background border-foreground"
-                                : "bg-transparent text-foreground border-border hover:border-foreground/50"
-                            }`}
+                            className={`px-4 py-2 text-xs tracking-wider transition-all border ${formData.accommodation === option
+                              ? "bg-foreground text-background border-foreground"
+                              : "bg-transparent text-foreground border-border hover:border-foreground/50"
+                              }`}
                           >
                             {option}
                           </button>
@@ -410,7 +407,7 @@ export default function AITravelPlanOverlay({
                 {/* 3. Special Requirements */}
                 <div className="bg-secondary/10 p-6 md:p-8 border border-border/50 space-y-8">
                   <h3 className="text-sm font-semibold uppercase tracking-widest border-b border-border/50 pb-3 mb-4">Special Requirements</h3>
-                  
+
                   <div className="flex flex-col gap-8">
                     {/* Dietary Restrictions */}
                     <div className="space-y-3">
@@ -426,11 +423,10 @@ export default function AITravelPlanOverlay({
                                 : [...formData.dietary, option];
                               setFormData({ ...formData, dietary: newDietary });
                             }}
-                            className={`px-4 py-2 text-xs tracking-wider transition-all border ${
-                              formData.dietary.includes(option)
-                                ? "bg-foreground text-background border-foreground"
-                                : "bg-transparent text-foreground border-border hover:border-foreground/50"
-                            }`}
+                            className={`px-4 py-2 text-xs tracking-wider transition-all border ${formData.dietary.includes(option)
+                              ? "bg-foreground text-background border-foreground"
+                              : "bg-transparent text-foreground border-border hover:border-foreground/50"
+                              }`}
                           >
                             {option}
                           </button>
@@ -438,11 +434,10 @@ export default function AITravelPlanOverlay({
                         <button
                           type="button"
                           onClick={() => setFormData({ ...formData, showOtherDietary: !formData.showOtherDietary })}
-                          className={`px-4 py-2 text-xs tracking-wider transition-all border ${
-                            formData.showOtherDietary
-                              ? "bg-foreground text-background border-foreground"
-                              : "bg-transparent text-foreground border-border hover:border-foreground/50"
-                          }`}
+                          className={`px-4 py-2 text-xs tracking-wider transition-all border ${formData.showOtherDietary
+                            ? "bg-foreground text-background border-foreground"
+                            : "bg-transparent text-foreground border-border hover:border-foreground/50"
+                            }`}
                         >
                           Other
                         </button>
@@ -474,11 +469,10 @@ export default function AITravelPlanOverlay({
                                 : [...formData.accessibility, option];
                               setFormData({ ...formData, accessibility: newAccess });
                             }}
-                            className={`px-4 py-2 text-xs tracking-wider transition-all border ${
-                              formData.accessibility.includes(option)
-                                ? "bg-foreground text-background border-foreground"
-                                : "bg-transparent text-foreground border-border hover:border-foreground/50"
-                            }`}
+                            className={`px-4 py-2 text-xs tracking-wider transition-all border ${formData.accessibility.includes(option)
+                              ? "bg-foreground text-background border-foreground"
+                              : "bg-transparent text-foreground border-border hover:border-foreground/50"
+                              }`}
                           >
                             {option}
                           </button>
@@ -486,11 +480,10 @@ export default function AITravelPlanOverlay({
                         <button
                           type="button"
                           onClick={() => setFormData({ ...formData, showOtherAccessibility: !formData.showOtherAccessibility })}
-                          className={`px-4 py-2 text-xs tracking-wider transition-all border ${
-                            formData.showOtherAccessibility
-                              ? "bg-foreground text-background border-foreground"
-                              : "bg-transparent text-foreground border-border hover:border-foreground/50"
-                          }`}
+                          className={`px-4 py-2 text-xs tracking-wider transition-all border ${formData.showOtherAccessibility
+                            ? "bg-foreground text-background border-foreground"
+                            : "bg-transparent text-foreground border-border hover:border-foreground/50"
+                            }`}
                         >
                           Other
                         </button>
@@ -517,15 +510,15 @@ export default function AITravelPlanOverlay({
                     <div key={id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 border-b border-border/30">
                       <label className="text-sm md:text-base font-light text-foreground/90">{label}</label>
                       <div className="flex items-center gap-2 shrink-0">
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => setQuizValue(id, true)}
                           className={`px-6 py-2 text-xs uppercase tracking-widest transition-all ${quizAnswers[id] === true ? "bg-foreground text-background border-foreground" : "bg-transparent text-foreground border border-border hover:border-foreground/50"}`}
                         >
                           Yes
                         </button>
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => setQuizValue(id, false)}
                           className={`px-6 py-2 text-xs uppercase tracking-widest transition-all ${quizAnswers[id] === false ? "bg-foreground text-background border-foreground" : "bg-transparent text-foreground border border-border hover:border-foreground/50"}`}
                         >
@@ -540,10 +533,10 @@ export default function AITravelPlanOverlay({
                 <div className="pt-6 space-y-4">
                   <label className="text-sm font-semibold uppercase tracking-widest block">Requests & Comments</label>
                   <p className="text-xs font-light text-foreground/60 mb-2">Celebrating a special occasion? Have a specific hotel in mind? Let us know below.</p>
-                  <textarea 
+                  <textarea
                     rows={4}
                     value={formData.additionalRequests}
-                    onChange={e => setFormData({...formData, additionalRequests: e.target.value})}
+                    onChange={e => setFormData({ ...formData, additionalRequests: e.target.value })}
                     placeholder="Type any specific dreams or requirements here..."
                     className="w-full bg-secondary/10 border border-border/50 p-4 text-base focus:outline-none focus:border-foreground transition-colors placeholder:text-foreground/30 font-light resize-none"
                   />
@@ -559,15 +552,34 @@ export default function AITravelPlanOverlay({
           {/* STATE: RESULT */}
           {appState === "result" && currentPlan && (
             <div className="max-w-4xl mx-auto px-6 py-12 md:py-20 animate-in fade-in slide-in-from-bottom-8 duration-700">
-              
+
               {/* Header Info */}
               <div className="text-center mb-16">
                 <span className="text-xs font-semibold uppercase tracking-widest text-primary mb-4 block">Your Tailored Escape</span>
-                <h1 className="text-5xl md:text-6xl font-serif mb-6">{currentPlan.destination}</h1>
+
+                {/* WRAPPER KEEPS TEXT CENTERED, BUTTON IS ABSOLUTELY POSITIONED TO THE RIGHT */}
+                <div className="relative inline-block mb-6 max-w-[80%] md:max-w-[85%]">
+                  <h1 className="text-5xl md:text-6xl font-serif">
+                    {currentPlan.destination}
+                  </h1>
+
+                  {currentPlan.slug && (
+                    <a
+                      href={`/plans/${currentPlan.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Open Shareable Page"
+                      className="absolute top-1/2 -translate-y-1/2 -right-12 md:-right-16 group flex items-center justify-center h-10 w-10 md:h-12 md:w-12 rounded-full bg-secondary/10 transition-all duration-300 shrink-0"
+                    >
+                      <ArrowUpRight className="w-7 h-7 md:w-10 md:h-10 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                    </a>
+                  )}
+                </div>
+
                 <p className="text-lg md:text-xl font-light text-foreground/80 max-w-2xl mx-auto leading-relaxed">
                   {currentPlan.summary}
                 </p>
-                
+
                 <div className="flex flex-wrap justify-center gap-4 mt-8">
                   <div className="flex items-center gap-2 bg-secondary/30 px-5 py-2.5 border border-border/50">
                     <DollarSign className="w-4 h-4 text-primary" />
@@ -598,7 +610,7 @@ export default function AITravelPlanOverlay({
                         <div className="flex flex-col gap-2">
                           {acc.amenities.map((amenity, i) => (
                             <span key={i} className="text-sm font-light text-foreground/90 flex items-start gap-2">
-                              <Check className="w-4 h-4 text-primary shrink-0 mt-0.5"/> 
+                              <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                               {amenity}
                             </span>
                           ))}

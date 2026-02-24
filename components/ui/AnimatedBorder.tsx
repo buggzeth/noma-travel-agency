@@ -10,9 +10,7 @@ export default function AnimatedBorder() {
       <div className="absolute bottom-0 left-0 w-[3px] h-0 bg-accent transition-all duration-200 delay-[200ms] ease-linear group-hover:h-full group-hover:delay-[200ms]" />
       <div className="absolute bottom-0 right-0 w-[3px] h-0 bg-accent transition-all duration-200 delay-[200ms] ease-linear group-hover:h-full group-hover:delay-[200ms]" />
 
-      {/* Top halves (Draw inward from top corners to center) */}
-      <div className="absolute top-0 left-0 h-[3px] w-0 bg-accent transition-all duration-200 delay-0 ease-linear group-hover:w-1/2 group-hover:delay-[400ms]" />
-      <div className="absolute top-0 right-0 h-[3px] w-0 bg-accent transition-all duration-200 delay-0 ease-linear group-hover:w-1/2 group-hover:delay-[400ms]" />
+      
     </div>
   );
 }
