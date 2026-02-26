@@ -8,7 +8,7 @@ import BottomNav from "./BottomNav";
 
 // Tabs
 import WelcomeTab from "./tabs/WelcomeTab";
-import TransitTab from "./tabs/TransitTab";
+//import TransitTab from "./tabs/TransitTab";
 import TodayTab from "./tabs/TodayTab";
 import ItineraryTab from "./tabs/ItineraryTab";
 import MoreTab from "./tabs/MoreTab";
@@ -38,9 +38,9 @@ export default function GuideApp({ plan }: GuideAppProps) {
                 {!isTripStarted && activeTab === "welcome" && (
                     <WelcomeTab plan={plan} onBegin={handleBeginTrip} />
                 )}
-                {!isTripStarted && activeTab === "transit" && (
+                {/*{!isTripStarted && activeTab === "transit" && (
                     <TransitTab plan={plan} />
-                )}
+                )}*/}
 
                 {/* ON-TRIP */}
                 {isTripStarted && (
