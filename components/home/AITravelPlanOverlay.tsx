@@ -10,7 +10,18 @@ export type TravelPlan = {
   summary: string;
   estimatedCost: string;
   bestTimeToVisit: string;
-  itinerary: { day: number; title: string; morning: string; afternoon: string; evening: string }[];
+  itinerary: {
+    day: number;
+    title: string;
+    morning: string;
+    afternoon: string;
+    evening: string;
+    location_metadata?: {
+      morning?: { name: string; lat: number; lng: number; radius_meters: number };
+      afternoon?: { name: string; lat: number; lng: number; radius_meters: number };
+      evening?: { name: string; lat: number; lng: number; radius_meters: number };
+    }
+  }[];
   accommodations: { name: string; description: string; pricePerNight: string; amenities: string[] }[];
   insiderTips: string[];
 };
@@ -602,7 +613,7 @@ export default function AITravelPlanOverlay({
                     <div key={idx} className="border border-border/50 p-6 bg-card hover:border-foreground/30 transition-colors">
                       <div className="flex justify-between items-start mb-3">
                         <h3 className="text-xl font-serif pr-4">{acc.name}</h3>
-                        <span className="text-xs bg-foreground text-background px-2 py-1 uppercase tracking-wider whitespace-nowrap">{acc.pricePerNight}</span>
+                        <span className="text-xs bg-foreground text-background px-2 py-1 uppercase tracking-wider whitespace-nowrap">{acc.pricePerNight} / NIGHT</span>
                       </div>
                       <p className="text-sm font-light text-foreground/70 mb-6 leading-relaxed">{acc.description}</p>
                       <div className="space-y-3">

@@ -5,6 +5,7 @@ import { Metadata } from "next";
 import { DollarSign, Calendar, Check, Sparkles, MapPin } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import BookingInterface from "@/components/plans/BookingInterface";
 
 // Initialize Supabase
 const supabase = createClient(
@@ -19,7 +20,7 @@ interface PageProps {
 // 1. Dynamically Generate SEO Metadata
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const resolvedParams = await params;
-  
+
   const { data } = await supabase
     .from("travel_plans")
     .select("destination, plan_data")
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 // 2. Main Page Component
 export default async function TravelPlanPage({ params }: PageProps) {
   const resolvedParams = await params;
-  
+
   // Fetch data from Supabase
   const { data, error } = await supabase
     .from("travel_plans")
@@ -55,7 +56,7 @@ export default async function TravelPlanPage({ params }: PageProps) {
   }
 
   const plan = data.plan_data;
-  
+
   // Format the creation date
   const writeDate = new Date(data.created_at).toLocaleDateString("en-US", {
     year: "numeric",
@@ -68,7 +69,7 @@ export default async function TravelPlanPage({ params }: PageProps) {
       <Header />
       <main className="min-h-screen bg-background text-foreground pt-24 pb-20">
         <article className="max-w-4xl mx-auto px-6">
-          
+
           {/* Top Article Metadata */}
           <div className="flex flex-col items-center justify-center text-center mb-16 animate-in fade-in slide-in-from-bottom-8 duration-700">
             <span className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-4 block border border-primary/30 px-3 py-1 bg-primary/5">
@@ -78,7 +79,7 @@ export default async function TravelPlanPage({ params }: PageProps) {
             <p className="text-lg md:text-xl font-light text-foreground/80 max-w-2xl mx-auto leading-relaxed mb-6">
               {plan.summary}
             </p>
-            
+
             {/* Written Date */}
             <p className="text-xs uppercase tracking-widest text-foreground/50 font-medium mb-8">
               Article written on: <time dateTime={data.created_at}>{writeDate}</time>
@@ -96,6 +97,9 @@ export default async function TravelPlanPage({ params }: PageProps) {
             </div>
           </div>
 
+          {/* --- ADD BOOKING INTERFACE HERE --- */}
+          <BookingInterface destination={plan.destination} />
+
           {/* Accommodations */}
           <section className="mb-16">
             <h2 className="text-2xl md:text-3xl font-serif mb-8 flex items-center gap-3 border-b border-border/50 pb-4">
@@ -106,7 +110,7 @@ export default async function TravelPlanPage({ params }: PageProps) {
                 <div key={idx} className="border border-border/50 p-6 bg-card hover:border-foreground/30 transition-colors">
                   <div className="flex justify-between items-start mb-3">
                     <h3 className="text-xl font-serif pr-4">{acc.name}</h3>
-                    <span className="text-xs bg-foreground text-background px-2 py-1 uppercase tracking-wider whitespace-nowrap">{acc.pricePerNight}</span>
+                    <span className="text-xs bg-foreground text-background px-2 py-1 uppercase tracking-wider whitespace-nowrap">{acc.pricePerNight} / NIGHT</span>
                   </div>
                   <p className="text-sm font-light text-foreground/70 mb-6 leading-relaxed">{acc.description}</p>
                   <div className="space-y-3">
@@ -114,7 +118,7 @@ export default async function TravelPlanPage({ params }: PageProps) {
                     <div className="flex flex-col gap-2">
                       {acc.amenities.map((amenity: string, i: number) => (
                         <span key={i} className="text-sm font-light text-foreground/90 flex items-start gap-2">
-                          <Check className="w-4 h-4 text-primary shrink-0 mt-0.5"/> 
+                          <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                           {amenity}
                         </span>
                       ))}
