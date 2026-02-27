@@ -3,8 +3,6 @@ import { GoogleGenAI } from "@google/genai";
 import { NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Optional: Increases timeout limit if you ever move off Cloudflare to Vercel
-export const maxDuration = 60; 
 export const dynamic = "force-dynamic";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
