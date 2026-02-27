@@ -15,7 +15,6 @@ const supabase = createClient(
 );
 
 const travelPlanSchema = {
-  // ... (Keep your exact schema here)
   type: "object",
   properties: {
     destination: { type: "string" },
@@ -66,8 +65,6 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Fetch Transcript using our bulletproof Oracle VM Microservice
-    // Make sure to add this to your Cloudflare / Local .env file!
-    // Example: TRANSCRIBER_URL=http://123.45.67.89:3001
     const transcriberUrl = process.env.TRANSCRIBER_API_URL;
     
     const vmResponse = await fetch(`${transcriberUrl}/transcript?url=${encodeURIComponent(youtubeUrl)}`);
