@@ -8,7 +8,6 @@ import { Search, Menu, X } from "lucide-react";
 const NAV_LINKS = [
   { label: "Destinations", href: "/destinations" },
   { label: "Categories", href: "/categories" },
-  { label: "Partners", href: "/partners" },
   { label: "Company", href: "/company" },
 ];
 
@@ -17,14 +16,18 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
-      <div className="flex justify-between items-center px-4 md:px-8 py-0 pb-1 max-w-7xl mx-auto">
-        {/* Logo */}
-        <Link href="/" className="text-5xl md:text-5xl font-serif text-foreground tracking-tighter z-50">
-          NOMA
-        </Link>
+      {/* Removed justify-between since the children will now dictate the spacing */}
+      <div className="flex items-center px-4 md:px-8 py-0 pb-1 max-w-7xl mx-auto w-full">
 
-        {/* Center Nav (Desktop only) */}
-        <nav className="hidden md:flex">
+        {/* Left: Logo (Takes up equal flex space to push center nav perfectly to the middle) */}
+        <div className="flex flex-1 justify-start z-50">
+          <Link href="/" className="text-5xl md:text-5xl font-serif text-foreground tracking-tighter">
+            NOMA
+          </Link>
+        </div>
+
+        {/* Center: Nav (Desktop only) */}
+        <nav className="hidden md:flex shrink-0">
           <ul className="flex items-center gap-8">
             {NAV_LINKS.map((link) => (
               <li key={link.label}>
@@ -39,9 +42,8 @@ export default function Header() {
           </ul>
         </nav>
 
-        {/* Right Actions */}
-        <div className="flex items-center gap-3 md:gap-5 z-50">
-
+        {/* Right: Actions (Takes up equal flex space to the left side) */}
+        <div className="flex flex-1 items-center justify-end gap-3 md:gap-5 z-50">
           {/* Mobile Menu Toggle */}
           <button
             className="md:hidden text-foreground/70 hover:text-foreground p-2 transition-colors"

@@ -2,25 +2,62 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { Metadata } from "next";
-import { DollarSign, Calendar, Check, Sparkles, MapPin } from "lucide-react";
+import Image from "next/image";
+import { DollarSign, Calendar, Check, Sparkles } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import BookingInterface from "@/components/plans/BookingInterface";
 
-// Initialize Supabase
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1454391304352-2bf4678b1a7a?q=80&w=2074&auto=format&fit=crop";
+
+async function getCachedDestinationImage(destination: string) {
+  // 1. Check DB Cache
+  const { data } = await supabase
+    .from("destination_images")
+    .select("image_url")
+    .eq("destination", destination)
+    .single();
+
+  if (data?.image_url) return data.image_url;
+
+  // 2. Fetch Unsplash if missing
+  if (!process.env.UNSPLASH_ACCESS_KEY) return FALLBACK_IMAGE;
+
+  try {
+    const res = await fetch(
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(
+        destination + " luxury travel landscape"
+      )}&client_id=${process.env.UNSPLASH_ACCESS_KEY}&per_page=1&orientation=landscape`
+    );
+
+    if (!res.ok) return FALLBACK_IMAGE;
+
+    const resData = await res.json();
+    const url = resData.results?.[0]?.urls?.regular || FALLBACK_IMAGE;
+
+    // 3. Save to DB Cache
+    if (url !== FALLBACK_IMAGE) {
+      await supabase.from("destination_images").upsert([{ destination, image_url: url }]);
+    }
+
+    return url;
+  } catch (error) {
+    console.error("Unsplash Fetch Error:", error);
+    return FALLBACK_IMAGE;
+  }
+}
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-// 1. Dynamically Generate SEO Metadata
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const resolvedParams = await params;
-
   const { data } = await supabase
     .from("travel_plans")
     .select("destination, plan_data")
@@ -40,11 +77,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-// 2. Main Page Component
 export default async function TravelPlanPage({ params }: PageProps) {
   const resolvedParams = await params;
 
-  // Fetch data from Supabase
   const { data, error } = await supabase
     .from("travel_plans")
     .select("*")
@@ -56,8 +91,8 @@ export default async function TravelPlanPage({ params }: PageProps) {
   }
 
   const plan = data.plan_data;
+  const imageUrl = await getCachedDestinationImage(plan.destination);
 
-  // Format the creation date
   const writeDate = new Date(data.created_at).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -67,41 +102,65 @@ export default async function TravelPlanPage({ params }: PageProps) {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-background text-foreground pt-24 pb-20">
-        <article className="max-w-4xl mx-auto px-6">
+      <main className="min-h-screen bg-background text-foreground pb-20">
 
-          {/* Top Article Metadata */}
-          <div className="flex flex-col items-center justify-center text-center mb-16 animate-in fade-in slide-in-from-bottom-8 duration-700">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-primary mb-4 block border border-primary/30 px-3 py-1 bg-primary/5">
+        {/* Dynamic Image Hero Header */}
+        <section className="relative h-[65vh] min-h-[500px] w-full flex flex-col justify-center items-center text-center px-6 pt-20 pb-20 mb-16">
+          <div className="absolute inset-0 z-0">
+            <Image
+              src={imageUrl}
+              alt={`${plan.destination} background`}
+              fill
+              className="object-cover"
+              priority
+            />
+            {/* Static Film Grain Overlay */}
+            <div
+              className="absolute inset-0 opacity-[0.25] mix-blend-overlay pointer-events-none z-10"
+              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 800 800' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+            />
+            {/* Gradient overlay to ensure text is perfectly readable */}
+            <div className="absolute inset-0 z-20 bg-black/40" />
+            <div className="absolute inset-0 z-20 bg-gradient-to-t from-background via-black/40 to-black/20" />
+          </div>
+
+          <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700 text-white">
+            <span className="text-[10px] font-semibold uppercase tracking-widest mb-4 block border border-white/30 px-3 py-1 bg-black/20 backdrop-blur-sm">
               Curated by NOMA AI
             </span>
-            <h1 className="text-5xl md:text-6xl font-serif mb-6">{plan.destination}</h1>
-            <p className="text-lg md:text-xl font-light text-foreground/80 max-w-2xl mx-auto leading-relaxed mb-6">
+
+            <h1 className="text-5xl md:text-7xl font-serif mb-6 drop-shadow-lg">
+              {plan.destination}
+            </h1>
+
+            <p className="text-lg md:text-xl font-light text-white/90 max-w-2xl mx-auto leading-relaxed mb-6 drop-shadow-md">
               {plan.summary}
             </p>
 
-            {/* Written Date */}
-            <p className="text-xs uppercase tracking-widest text-foreground/50 font-medium mb-8">
-              Article written on: <time dateTime={data.created_at}>{writeDate}</time>
+            <p className="text-xs uppercase tracking-widest text-white/60 font-medium mb-8">
+              Crafted on: <time dateTime={data.created_at}>{writeDate}</time>
             </p>
 
             <div className="flex flex-wrap justify-center gap-4">
-              <div className="flex items-center gap-2 bg-secondary/30 px-5 py-2.5 border border-border/50">
-                <DollarSign className="w-4 h-4 text-primary" />
+              <div className="flex items-center gap-2 bg-black/30 backdrop-blur-md px-5 py-2.5 border border-white/20">
+                <DollarSign className="w-4 h-4 text-white" />
                 <span className="text-sm tracking-wide font-medium">{plan.estimatedCost}</span>
               </div>
-              <div className="flex items-center gap-2 bg-secondary/30 px-5 py-2.5 border border-border/50">
-                <Calendar className="w-4 h-4 text-primary" />
-                <span className="text-sm tracking-wide font-medium">Ideal Time: {plan.bestTimeToVisit}</span>
+              <div className="flex items-center gap-2 bg-black/30 backdrop-blur-md px-5 py-2.5 border border-white/20">
+                <Calendar className="w-4 h-4 text-white" />
+                <span className="text-sm tracking-wide font-medium">Ideal: {plan.bestTimeToVisit}</span>
               </div>
             </div>
           </div>
+        </section>
 
-          {/* --- ADD BOOKING INTERFACE HERE --- */}
+        <article className="max-w-4xl mx-auto px-6 relative z-20">
+
+          {/* Booking Interface */}
           <BookingInterface destination={plan.destination} />
 
           {/* Accommodations */}
-          <section className="mb-16">
+          <section className="mb-16 mt-8">
             <h2 className="text-2xl md:text-3xl font-serif mb-8 flex items-center gap-3 border-b border-border/50 pb-4">
               Where to Drop Your Bags
             </h2>
