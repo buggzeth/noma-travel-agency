@@ -50,13 +50,13 @@ export default function BookingInterface({ destination }: { destination: string 
                     />
 
                     {/* Modal Window */}
-                    <div className="relative w-full h-full max-w-6xl bg-card border border-border/50 shadow-2xl flex flex-col sm:h-[90vh] overflow-hidden animate-in zoom-in-95 fade-in duration-300">
+                    <div className="relative w-full h-[80vh] max-w-6xl bg-card border border-border/50 shadow-2xl flex flex-col sm:h-[70vh] overflow-hidden animate-in zoom-in-95 fade-in duration-300">
 
                         {/* Modal Header */}
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-secondary/10 shrink-0">
+                        <div className="flex items-center justify-between px-6 py-8 border-b border-border/50 bg-secondary/10 shrink-0">
                             <div>
                                 <h3 className="font-serif text-xl md:text-2xl">Flight Search</h3>
-                                <p className="text-[10px] uppercase tracking-widest text-foreground/50 mt-1 font-semibold">
+                                <p className="text-[10px] uppercase tracking-widest text-foreground/50 mt-2 font-semibold">
                                     Powered by NOMA & Aviasales
                                 </p>
                             </div>

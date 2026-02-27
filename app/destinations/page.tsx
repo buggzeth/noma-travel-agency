@@ -96,8 +96,8 @@ export default async function DestinationsPage() {
             />
             {/* Pure Black Film Grain Overlay */}
             <div
-              className="absolute inset-0 opacity-30 mix-blend-screen pointer-events-none z-10"
-              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 800 800' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+              className="absolute inset-0 opacity-20 mix-blend-multiply pointer-events-none z-10"
+              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
             />
             <div className="absolute inset-0 z-20 bg-black/50" />
           </div>
@@ -107,7 +107,7 @@ export default async function DestinationsPage() {
               The NOMA Anthology
             </span>
             <h1 className="text-4xl md:text-6xl font-serif text-white mb-6 animate-in fade-in slide-in-from-bottom-6 duration-1000">
-              Curated AI Escapes
+              Curated Escapes
             </h1>
             <p className="text-white/80 font-light text-sm md:text-base max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-150">
               Browse our gallery of bespoke itineraries. Each journey below was uniquely crafted by our AI concierge, tailored for the modern luxury traveler.
@@ -153,12 +153,12 @@ export default async function DestinationsPage() {
                       />
                       {/* Pure Black Film Grain Overlay */}
                       <div
-                        className="absolute inset-0 opacity-90 mix-blend-multiply pointer-events-none z-10"
+                        className="absolute inset-0 opacity-40 mix-blend-multiply pointer-events-none z-10"
                         style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 800 800' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
                       />
                       {/* Dual-layer dark gradient for perfect text readability */}
-                      <div className="absolute inset-0 z-20 bg-black/20 group-hover:bg-black/10 transition-colors duration-500" />
-                      <div className="absolute inset-0 z-20 bg-gradient-to-t from-black/95 via-black/50 to-black/10" />
+                      <div className="absolute inset-0 z-20 bg-black/5 group-hover:bg-black/0 transition-colors duration-500" />
+                      <div className="absolute inset-0 z-20 bg-gradient-to-t from-black/95 via-black/1 to-black/0" />
                     </div>
 
                     {/* Content Layer */}
