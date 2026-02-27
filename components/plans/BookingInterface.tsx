@@ -1,35 +1,28 @@
 // components/plans/BookingInterface.tsx
 "use client";
 
-import { useState } from "react";
-import { Plane, ChevronDown, ChevronUp } from "lucide-react";
-import Script from "next/script";
+import { useState, useEffect } from "react";
+import { Plane, X, ArrowRight } from "lucide-react";
 
 export default function BookingInterface({ destination }: { destination: string }) {
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+
+    // Prevent the main background from scrolling when the modal is open
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "unset";
+        }
+        return () => { document.body.style.overflow = "unset"; };
+    }, [isOpen]);
 
     return (
         <div className="mb-16 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-            {/* Inject the Travelpayouts Whitelabel script safely using Next.js Script */}
-            <Script
-                id="tp-whitelabel-script"
-                strategy="lazyOnload"
-                dangerouslySetInnerHTML={{
-                    __html: `
-                        (function () {
-                            var script = document.createElement("script");
-                            script.async = 1;
-                            script.type = "module";
-                            script.src = "https://tpembd.com/wl_web/main.js?wl_id=13524";
-                            document.head.appendChild(script);
-                        })();
-                    `
-                }}
-            />
-
+            {/* Main Page Button */}
             <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="w-full flex items-center justify-between p-6 bg-secondary/10 border border-primary/30 hover:bg-secondary/20 transition-colors group"
+                onClick={() => setIsOpen(true)}
+                className="w-full flex items-center justify-between p-6 bg-secondary/10 border border-primary/30 hover:bg-secondary/20 transition-colors group cursor-pointer"
             >
                 <div className="flex items-center gap-4">
                     <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-full group-hover:scale-110 transition-transform border border-primary/20">
@@ -42,32 +35,52 @@ export default function BookingInterface({ destination }: { destination: string 
                         </p>
                     </div>
                 </div>
-                {isExpanded ? (
-                    <ChevronUp className="w-6 h-6 text-primary shrink-0" />
-                ) : (
-                    <ChevronDown className="w-6 h-6 text-primary shrink-0" />
-                )}
+                <div className="flex items-center justify-center w-10 h-10 border border-primary/30 group-hover:bg-primary/5 transition-colors">
+                    <ArrowRight className="w-5 h-5 text-primary shrink-0 group-hover:translate-x-1 transition-transform" />
+                </div>
             </button>
 
-            <div
-                className={`overflow-hidden transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] ${isExpanded ? "max-h-[3000px] opacity-100 border-x border-b border-primary/30 bg-card" : "max-h-0 opacity-0"
-                    }`}
-            >
-                <div className="p-6 md:p-8 border-t border-border/30">
-                    <p className="text-[10px] uppercase tracking-widest font-semibold text-foreground/70 mb-6 text-center">
-                        Real-time flight search powered by NOMA & Aviasales
-                    </p>
+            {/* Fullscreen Modal Overlay */}
+            {isOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center px-0 py-0 sm:px-6 sm:py-6 md:p-12">
+                    {/* Dark Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-[#2A2B27]/60 backdrop-blur-sm transition-opacity"
+                        onClick={() => setIsOpen(false)}
+                    />
 
-                    {/* Travelpayouts Whitelabel Metasearch Containers */}
-                    <div className="w-full flex flex-col gap-6">
-                        {/* 1. Search Form Widget */}
-                        <div id="tpwl-search"></div>
+                    {/* Modal Window */}
+                    <div className="relative w-full h-full max-w-6xl bg-card border border-border/50 shadow-2xl flex flex-col sm:h-[90vh] overflow-hidden animate-in zoom-in-95 fade-in duration-300">
 
-                        {/* 2. Results Tickets Widget */}
-                        <div id="tpwl-tickets"></div>
+                        {/* Modal Header */}
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-secondary/10 shrink-0">
+                            <div>
+                                <h3 className="font-serif text-xl md:text-2xl">Flight Search</h3>
+                                <p className="text-[10px] uppercase tracking-widest text-foreground/50 mt-1 font-semibold">
+                                    Powered by NOMA & Aviasales
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setIsOpen(false)}
+                                className="p-2 hover:bg-black/5 transition-colors border border-transparent hover:border-border/50"
+                                aria-label="Close modal"
+                            >
+                                <X className="w-6 h-6 text-foreground/70" />
+                            </button>
+                        </div>
+
+                        {/* Modal Body (Iframe) */}
+                        <div className="flex-1 w-full relative bg-card overflow-hidden">
+                            <iframe
+                                src="/flight-search-embed.html"
+                                className="absolute inset-0 w-full h-full border-none bg-transparent"
+                                title="Flight Search Widget"
+                                allow="clipboard-write"
+                            />
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 }

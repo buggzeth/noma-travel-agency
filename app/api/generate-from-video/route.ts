@@ -2,8 +2,9 @@
 import { GoogleGenAI } from "@google/genai";
 import { NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { fetchTranscript } from "youtube-transcript-plus";
 
+// Optional: Increases timeout limit if you ever move off Cloudflare to Vercel
+export const maxDuration = 60; 
 export const dynamic = "force-dynamic";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_API_KEY });
@@ -14,6 +15,7 @@ const supabase = createClient(
 );
 
 const travelPlanSchema = {
+  // ... (Keep your exact schema here)
   type: "object",
   properties: {
     destination: { type: "string" },
@@ -63,13 +65,34 @@ export async function POST(req: NextRequest) {
       throw new Error("YouTube URL is required.");
     }
 
-    // 1. Fetch Transcript using the new package
-    const transcriptRaw = await fetchTranscript(youtubeUrl);
-    let transcriptText = transcriptRaw.map((t) => t.text).join(" ");
+    // 1. Fetch Transcript using our bulletproof Oracle VM Microservice
+    // Make sure to add this to your Cloudflare / Local .env file!
+    // Example: TRANSCRIBER_URL=http://123.45.67.89:3001
+    const transcriberUrl = process.env.TRANSCRIBER_API_URL;
+    
+    const vmResponse = await fetch(`${transcriberUrl}/transcript?url=${encodeURIComponent(youtubeUrl)}`);
+
+    if (!vmResponse.ok) {
+      // Parse the error from the microservice if it fails
+      const errorData = await vmResponse.json().catch(() => ({}));
+      throw new Error(errorData.error || "Failed to fetch transcript from microservice.");
+    }
+
+    const transcriptRaw = await vmResponse.json();
+
+    if (!Array.isArray(transcriptRaw) || transcriptRaw.length === 0) {
+      throw new Error("Transcript is empty or unavailable for this video.");
+    }
+
+    // Map the text values exactly like before
+    let transcriptText = transcriptRaw.map((t: any) => t.text).join(" ");
     
     // --- POST-PROCESSING ---
-    // Clean up HTML entities and token-wasting tags
-    transcriptText = transcriptText
+    // Slice FIRST to save massive amounts of CPU time and prevent Cloudflare 503s
+    let safeTranscriptText = transcriptText.slice(0, 30000);
+
+    // Clean up HTML entities and token-wasting tags on the sliced string
+    safeTranscriptText = safeTranscriptText
       .replace(/&#39;/g, "'")       // Fix apostrophes
       .replace(/&quot;/g, '"')      // Fix double quotes
       .replace(/&amp;/g, "&")       // Fix ampersands
@@ -79,9 +102,6 @@ export async function POST(req: NextRequest) {
       .replace(/\s+/g, " ")         // Collapse multiple spaces into a single space
       .trim();                      // Remove leading/trailing spaces
     // -----------------------
-
-    // Safety check - trim transcript if it's ridiculously long
-    const safeTranscriptText = transcriptText.slice(0, 30000);
 
     const today = new Date().toLocaleDateString();
 
@@ -151,6 +171,8 @@ export async function POST(req: NextRequest) {
 
   } catch (error: any) {
     console.error("[Generate Video Plan API Error]:", error);
+    
+    // Pass the actual microservice error down to the frontend gracefully
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { "Content-Type": "application/json" }
