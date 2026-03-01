@@ -16,6 +16,8 @@ const travelPlanSchema = {
   properties: {
     destination: { type: "string" },
     summary: { type: "string" },
+    departDate: { type: "string" },
+    returnDate: { type: "string" },
     estimatedCost: { type: "string" },
     bestTimeToVisit: { type: "string" },
     itinerary: {
@@ -37,12 +39,11 @@ const travelPlanSchema = {
       items: {
         type: "object",
         properties: {
-          name: { type: "string" },
+          tier: { type: "string" },
           description: { type: "string" },
-          pricePerNight: { type: "string" },
-          amenities: { type: "array", items: { type: "string" } }
+          estimatedPricePerNight: { type: "string" }
         },
-        required: ["name", "description", "pricePerNight", "amenities"]
+        required: ["tier", "description", "estimatedPricePerNight"]
       }
     },
     insiderTips: {
@@ -50,7 +51,7 @@ const travelPlanSchema = {
       items: { type: "string" }
     }
   },
-  required: ["destination", "summary", "estimatedCost", "bestTimeToVisit", "itinerary", "accommodations", "insiderTips"]
+  required: ["destination", "summary", "departDate", "returnDate", "estimatedCost", "bestTimeToVisit", "itinerary", "accommodations", "insiderTips"]
 };
 
 export async function POST(req: NextRequest) {
@@ -58,7 +59,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     const { 
-      destination, timing, days, 
+      destination, departDate, returnDate, days, 
       adults, children, 
       tripType, pace, accommodation, budget, 
       dietary, accessibility, additionalRequests, 
@@ -76,13 +77,13 @@ export async function POST(req: NextRequest) {
 
       CLIENT PROFILE & LOGISTICS:
       - Destination: ${destination}
-      - Dates/Timing: ${timing}
+      - Travel Dates: ${departDate} to ${returnDate}
       - Duration: ${days} days
       - Travelers: ${adults} Adults, ${children} Children (Under 18)
       - Trip Purpose: ${tripType}
       - Preferred Pace: ${pace}
       - Budget Level: ${budget}
-      - Accommodation Style: ${accommodation}
+      - Ideal Accommodation Vibe: ${accommodation}
       
       SPECIAL REQUIREMENTS & REQUESTS:
       - Dietary Restrictions: ${dietary || "None specified"}
@@ -101,11 +102,12 @@ export async function POST(req: NextRequest) {
       INSTRUCTIONS (STRICTLY CONCISE):
       1. This user hates reading walls of text. Keep EVERYTHING short, sweet, and punchy. Maximum 1-2 sentences per description.
       2. Provide a brief, engaging summary (max 2 sentences) that reflects their specific inputs, budget, and any additional requests.
-      3. Provide a realistic estimated cost (e.g., "$1,500 - $2,500 total") tailored strictly to their requested "${budget}" tier.
-      4. Recommend 2 accommodations matching their exact requested style (${accommodation}) that realistically fit the ${budget} budget.
-      5. Construct a daily itinerary matching their preferred pace (${pace}). Each section (morning, afternoon, evening) MUST mention ONE specific, real, named place (e.g., "Osteria Francescana" not "a sustainable restaurant"). DO NOT provide multiple choices for activities or restaurants in a single section; pick the absolute best one.
-      6. Ensure dietary requirements (${dietary}) and accessibility (${accessibility}) are respected in activity and dining choices.
-      7. Provide 3 quick insider tips relevant to their trip type, preferences, or additional requests.
+      3. Format 'departDate' and 'returnDate' nicely as readable text (e.g., 'October 15, 2024') instead of raw database timestamps.
+      4. Provide a realistic estimated cost (e.g., "$1,500 - $2,500 total") tailored strictly to their requested "${budget}" tier.
+      5. ACCOMMODATIONS: Recommend exactly 3 tiers of accommodations ('Budget', 'Mid-Tier', 'Luxury') for the general area rather than specific hotel names. Include an estimated average price per night for each tier based on the destination.
+      6. ITINERARY: Construct a daily itinerary matching their preferred pace (${pace}). The name of the destination/flight city MUST be the very first location activity on Day 1. Fill the itinerary strictly with exploring, dining, and activities. Assume all check-in, check-out, and airport transit logistics are already handled by the user. Each section (morning, afternoon, evening) MUST mention ONE specific, real, named place (e.g., "Osteria Francescana" not "a sustainable restaurant").
+      7. Ensure dietary requirements (${dietary}) and accessibility (${accessibility}) are respected in activity and dining choices.
+      8. Provide 3 quick insider tips relevant to their trip type, preferences, or additional requests.
 
       Return ONLY valid JSON matching the exact schema requested.
     `;

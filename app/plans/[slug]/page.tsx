@@ -16,7 +16,6 @@ const supabase = createClient(
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1454391304352-2bf4678b1a7a?q=80&w=2074&auto=format&fit=crop";
 
 async function getCachedDestinationImage(destination: string) {
-  // 1. Check DB Cache
   const { data } = await supabase
     .from("destination_images")
     .select("image_url")
@@ -25,7 +24,6 @@ async function getCachedDestinationImage(destination: string) {
 
   if (data?.image_url) return data.image_url;
 
-  // 2. Fetch Unsplash if missing
   if (!process.env.UNSPLASH_ACCESS_KEY) return FALLBACK_IMAGE;
 
   try {
@@ -40,7 +38,6 @@ async function getCachedDestinationImage(destination: string) {
     const resData = await res.json();
     const url = resData.results?.[0]?.urls?.regular || FALLBACK_IMAGE;
 
-    // 3. Save to DB Cache
     if (url !== FALLBACK_IMAGE) {
       await supabase.from("destination_images").upsert([{ destination, image_url: url }]);
     }
@@ -50,6 +47,13 @@ async function getCachedDestinationImage(destination: string) {
     console.error("Unsplash Fetch Error:", error);
     return FALLBACK_IMAGE;
   }
+}
+
+function getYouTubeId(url: string) {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
 }
 
 interface PageProps {
@@ -93,6 +97,9 @@ export default async function TravelPlanPage({ params }: PageProps) {
   const plan = data.plan_data;
   const imageUrl = await getCachedDestinationImage(plan.destination);
 
+  // Extract video ID if the url was saved
+  const videoId = plan.youtubeUrl ? getYouTubeId(plan.youtubeUrl) : null;
+
   const writeDate = new Date(data.created_at).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -104,7 +111,6 @@ export default async function TravelPlanPage({ params }: PageProps) {
       <Header />
       <main className="min-h-screen bg-background text-foreground pb-20 overflow-x-hidden">
 
-        {/* Dynamic Image Hero Header */}
         <section className="relative h-[65vh] min-h-[500px] w-full flex flex-col justify-center items-center text-center px-4 md:px-6 pt-20 pb-20 mb-16">
           <div className="absolute inset-0 z-0">
             <Image
@@ -114,12 +120,10 @@ export default async function TravelPlanPage({ params }: PageProps) {
               className="object-cover"
               priority
             />
-            {/* Static Film Grain Overlay */}
             <div
               className="absolute inset-0 opacity-[0.25] mix-blend-overlay pointer-events-none z-10"
               style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 800 800' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
             />
-            {/* Gradient overlay to ensure text is perfectly readable */}
             <div className="absolute inset-0 z-20 bg-black/40" />
             <div className="absolute inset-0 z-20 bg-gradient-to-t from-background via-black/40 to-black/20" />
           </div>
@@ -129,12 +133,10 @@ export default async function TravelPlanPage({ params }: PageProps) {
               Curated by NOMA AI
             </span>
 
-            {/* Truncated & scaled destination title */}
             <h1 className="text-4xl sm:text-5xl md:text-7xl font-serif mb-4 md:mb-6 drop-shadow-lg line-clamp-2 md:line-clamp-none w-full px-2">
               {plan.destination}
             </h1>
 
-            {/* Truncated & scaled summary */}
             <p className="text-sm sm:text-base md:text-xl font-light text-white/90 max-w-2xl mx-auto leading-relaxed mb-6 drop-shadow-md line-clamp-3 sm:line-clamp-4 md:line-clamp-none px-2">
               {plan.summary}
             </p>
@@ -143,7 +145,6 @@ export default async function TravelPlanPage({ params }: PageProps) {
               Crafted on: <time dateTime={data.created_at}>{writeDate}</time>
             </p>
 
-            {/* Scaled info badges with safe truncation for long dates/costs */}
             <div className="flex flex-wrap justify-center gap-3 md:gap-4 w-full px-4">
               <div className="flex items-center gap-1.5 md:gap-2 bg-black/30 backdrop-blur-md px-3 py-2 md:px-5 md:py-2.5 border border-white/20 max-w-full">
                 <DollarSign className="w-3.5 h-3.5 md:w-4 md:h-4 text-white shrink-0" />
@@ -154,7 +155,9 @@ export default async function TravelPlanPage({ params }: PageProps) {
               <div className="flex items-center gap-1.5 md:gap-2 bg-black/30 backdrop-blur-md px-3 py-2 md:px-5 md:py-2.5 border border-white/20 max-w-full">
                 <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4 text-white shrink-0" />
                 <span className="text-xs md:text-sm tracking-wide font-medium truncate">
-                  Ideal: {plan.bestTimeToVisit}
+                  {plan.departDate && plan.returnDate
+                    ? `${plan.departDate} — ${plan.returnDate}`
+                    : `Ideal: ${plan.bestTimeToVisit}`}
                 </span>
               </div>
             </div>
@@ -163,7 +166,23 @@ export default async function TravelPlanPage({ params }: PageProps) {
 
         <article className="max-w-4xl mx-auto px-6 relative z-20">
 
-          {/* Booking Interface */}
+          {/* NEW: YouTube Video Embed */}
+          {videoId && (
+            <section className="mb-12 mt-8">
+              <div className="w-full aspect-video rounded-xl overflow-hidden border border-border/50 shadow-lg">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src={`https://www.youtube.com/embed/${videoId}`}
+                  title="Source YouTube Video"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </section>
+          )}
+
           <BookingInterface destination={plan.destination} />
 
           {/* Accommodations */}
@@ -174,27 +193,28 @@ export default async function TravelPlanPage({ params }: PageProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {plan.accommodations.map((acc: any, idx: number) => (
                 <div key={idx} className="border border-border/50 p-6 bg-card hover:border-foreground/30 transition-colors">
-                  {/* Allow title & price to stack on very small screens to prevent clipping */}
                   <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-0 mb-3">
-                    <h3 className="text-xl font-serif pr-4 line-clamp-2">{acc.name}</h3>
+                    <h3 className="text-xl font-serif pr-4 line-clamp-2">{acc.tier || acc.name}</h3>
                     <span className="text-[10px] sm:text-xs bg-foreground text-background px-2 py-1 uppercase tracking-wider whitespace-nowrap shrink-0">
-                      {acc.pricePerNight} / NIGHT
+                      {acc.estimatedPricePerNight || acc.pricePerNight} / NIGHT
                     </span>
                   </div>
                   <p className="text-sm font-light text-foreground/70 mb-6 leading-relaxed line-clamp-4 md:line-clamp-none">
                     {acc.description}
                   </p>
-                  <div className="space-y-3">
-                    <p className="text-[10px] uppercase tracking-widest font-semibold text-foreground/50">Standout Perks</p>
-                    <div className="flex flex-col gap-2">
-                      {acc.amenities.map((amenity: string, i: number) => (
-                        <span key={i} className="text-sm font-light text-foreground/90 flex items-start gap-2">
-                          <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                          <span className="line-clamp-2">{amenity}</span>
-                        </span>
-                      ))}
+                  {acc.amenities && acc.amenities.length > 0 && (
+                    <div className="space-y-3">
+                      <p className="text-[10px] uppercase tracking-widest font-semibold text-foreground/50">Standout Perks</p>
+                      <div className="flex flex-col gap-2">
+                        {acc.amenities.map((amenity: string, i: number) => (
+                          <span key={i} className="text-sm font-light text-foreground/90 flex items-start gap-2">
+                            <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                            <span className="line-clamp-2">{amenity}</span>
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               ))}
             </div>

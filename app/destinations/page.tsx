@@ -4,14 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { ArrowRight, MapPin, CalendarDays, Wallet } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
+import DestinationsClient from "@/components/destinations/DestinationsClient";
 
 export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Curated Journeys | NOMA Travel Agency",
-  description: "Explore a dynamic catalogue of bespoke luxury travel itineraries crafted by NOMA's AI Journey Architect.",
+  description: "Explore a dynamic catalogue of bespoke travel itineraries crafted by NOMA's AI travel agent.",
 };
 
 const supabase = createClient(
@@ -110,7 +110,7 @@ export default async function DestinationsPage() {
               Curated Escapes
             </h1>
             <p className="text-white/80 font-light text-sm md:text-base max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-150">
-              Browse our gallery of bespoke itineraries. Each journey below was uniquely crafted by our AI concierge, tailored for the modern luxury traveler.
+              Browse our gallery of bespoke itineraries. Each journey below was uniquely crafted by our AI concierge, tailored for the modern traveler.
             </p>
           </div>
         </section>
@@ -121,7 +121,7 @@ export default async function DestinationsPage() {
             <div className="text-center py-24 border border-border/50 bg-card max-w-2xl mx-auto">
               <h2 className="text-2xl font-serif mb-4">No Journeys Found</h2>
               <p className="text-foreground/60 font-light mb-8 max-w-md mx-auto">
-                Our archive is currently empty. Be the first to generate a stunning luxury itinerary using our Journey Architect.
+                Our archive is currently empty. Be the first to generate a stunning itinerary using our AI travel agent.
               </p>
               <Link
                 href="/"
@@ -131,91 +131,7 @@ export default async function DestinationsPage() {
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-              {plansWithImages.map((plan) => {
-                const pd = plan.plan_data;
-                const daysCount = pd?.itinerary?.length || 0;
-
-                return (
-                  <Link
-                    key={plan.slug}
-                    href={`/plans/${plan.slug}`}
-                    className="group relative flex flex-col aspect-[4/5] md:aspect-square overflow-hidden border border-border/50 bg-black shadow-sm hover:shadow-2xl transition-all duration-500"
-                  >
-                    {/* Background Image */}
-                    <div className="absolute inset-0 z-0">
-                      <Image
-                        src={plan.imageUrl}
-                        alt={`${plan.destination} travel plan`}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                        className="object-cover transition-transform duration-1000 opacity-90"
-                      />
-                      {/* Pure Black Film Grain Overlay */}
-                      <div
-                        className="absolute inset-0 opacity-40 mix-blend-multiply pointer-events-none z-10"
-                        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 800 800' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
-                      />
-                      {/* Dual-layer dark gradient for perfect text readability */}
-                      <div className="absolute inset-0 z-20 bg-black/5 group-hover:bg-black/0 transition-colors duration-500" />
-                      <div className="absolute inset-0 z-20 bg-gradient-to-t from-black/95 via-black/1 to-black/0" />
-                    </div>
-
-                    {/* Content Layer */}
-                    <div className="relative z-10 flex flex-col h-full p-6 md:p-8 text-white justify-end">
-
-                      {/* Top Badges */}
-                      <div className="absolute top-6 left-6 flex flex-col gap-2">
-                        <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-semibold bg-white/10 text-white border border-white/20 px-3 py-1.5 backdrop-blur-md">
-                          <MapPin className="w-3 h-3 text-white/80" />
-                          {plan.destination}
-                        </span>
-                      </div>
-
-                      <div className="transform transition-transform duration-500 group-hover:-translate-y-2">
-                        <h2 className="text-2xl md:text-3xl font-serif mb-3 line-clamp-2 leading-tight drop-shadow-md">
-                          {plan.destination} Escape
-                        </h2>
-
-                        <p className="text-white/80 font-light mb-6 text-sm leading-relaxed line-clamp-2 md:line-clamp-3">
-                          {pd?.summary}
-                        </p>
-
-                        {/* Footer Info Row */}
-                        <div className="grid grid-cols-2 gap-4 border-t border-white/20 pt-4 mb-2">
-                          <div className="flex flex-col gap-1">
-                            <span className="text-[10px] text-white/60 uppercase tracking-widest font-semibold flex items-center gap-1">
-                              <Wallet className="w-3 h-3" /> Budget
-                            </span>
-                            <span className="text-sm font-medium truncate drop-shadow-sm">
-                              {pd?.estimatedCost || "Moderate"}
-                            </span>
-                          </div>
-
-                          <div className="flex flex-col gap-1 text-right items-end">
-                            <span className="text-[10px] text-white/60 uppercase tracking-widest font-semibold flex items-center gap-1">
-                              <CalendarDays className="w-3 h-3" /> Duration
-                            </span>
-                            <span className="text-sm font-medium drop-shadow-sm">
-                              {daysCount} Days
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Call to action arrow */}
-                      <div className="mt-4 flex items-center justify-between text-white/90 text-xs uppercase tracking-widest font-semibold overflow-hidden">
-                        <span className="opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 ease-out">
-                          Explore Plan
-                        </span>
-                        <ArrowRight className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" />
-                      </div>
-
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+            <DestinationsClient plans={plansWithImages} />
           )}
         </section>
       </main>
