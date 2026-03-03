@@ -27,11 +27,29 @@ const travelPlanSchema = {
         properties: {
           day: { type: "number" },
           title: { type: "string" },
-          morning: { type: "string" },
-          afternoon: { type: "string" },
-          evening: { type: "string" },
+          activities: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                title: { type: "string" },
+                description: { type: "string" },
+                estimatedTime: { type: "string" }
+              },
+              required: ["title", "description", "estimatedTime"]
+            }
+          },
+          meals: {
+            type: "object",
+            properties: {
+              breakfast: { type: "string" },
+              lunch: { type: "string" },
+              dinner: { type: "string" }
+            },
+            required: ["breakfast", "lunch", "dinner"]
+          }
         },
-        required: ["day", "title", "morning", "afternoon", "evening"]
+        required: ["day", "title", "activities", "meals"]
       }
     },
     accommodations: {
@@ -105,9 +123,9 @@ export async function POST(req: NextRequest) {
       3. Format 'departDate' and 'returnDate' nicely as readable text (e.g., 'October 15, 2024') instead of raw database timestamps.
       4. Provide a realistic estimated cost (e.g., "$1,500 - $2,500 total") tailored strictly to their requested "${budget}" tier.
       5. ACCOMMODATIONS: Recommend exactly 3 tiers of accommodations ('Budget', 'Mid-Tier', 'Luxury') for the general area rather than specific hotel names. Include an estimated average price per night for each tier based on the destination.
-      6. ITINERARY: Construct a daily itinerary matching their preferred pace (${pace}). The name of the destination/flight city MUST be the very first location activity on Day 1. Fill the itinerary strictly with exploring, dining, and activities. Assume all check-in, check-out, and airport transit logistics are already handled by the user. Each section (morning, afternoon, evening) MUST mention ONE specific, real, named place (e.g., "Osteria Francescana" not "a sustainable restaurant").
+      6. ITINERARY: Construct a daily itinerary matching their preferred pace (${pace}). Structure the day realistically by providing up to 3 separate activities and taking into account the 'estimatedTime' of each so that all activities can comfortably fit into one day. Provide a separate section for distinct 'breakfast', 'lunch', and 'dinner' plans. Every activity and meal MUST mention ONE specific, real, named place (e.g., "Osteria Francescana" not "a sustainable restaurant"). Group activities and meals for each individual day so they are geographically clustered close to each other (walking distance or a very short ride) to maximize convenience and avoid unnecessary cross-town transit within the same day.
       7. Ensure dietary requirements (${dietary}) and accessibility (${accessibility}) are respected in activity and dining choices.
-      8. Provide 3 quick insider tips relevant to their trip type, preferences, or additional requests.
+      8. Provide 5 quick insider tips relevant to their trip type, preferences, or additional requests.
 
       Return ONLY valid JSON matching the exact schema requested.
     `;
@@ -137,8 +155,8 @@ export async function POST(req: NextRequest) {
       ${JSON.stringify(planData.itinerary, null, 2)}
 
       TASK: 
-      1. Digest each section (morning, afternoon, evening) of each day separately.
-      2. For each section, use Google Maps to find the exact geographical coordinates (latitude and longitude) of the specific, named location mentioned.
+      1. Digest each activity and each meal (breakfast, lunch, dinner) of each day separately.
+      2. For each item, use Google Maps to find the exact geographical coordinates (latitude and longitude) of the specific, named location mentioned.
       3. Determine an appropriate geofence radius in meters (e.g., 50 for a specific building/restaurant, 150 for a large park or plaza).
       4. Provide the exact name of the location you found coordinates for in the "name" property.
       
@@ -150,27 +168,46 @@ export async function POST(req: NextRequest) {
       {
         "day": 1,
         "title": "Heart of the City",
-        "morning": "Tour the Colosseum and the Roman Forum.",
-        "afternoon": "Lunch at Roscioli Salumeria con Cucina followed by a visit to the Pantheon.",
-        "evening": "Dine at Armando al Pantheon.",
+        "activities": [
+          {
+            "title": "Colosseum Tour",
+            "description": "Tour the Colosseum and the Roman Forum.",
+            "estimatedTime": "3 hours"
+          }
+        ],
+        "meals": {
+          "breakfast": "Pastries at Roscioli Caffè.",
+          "lunch": "Lunch at Roscioli Salumeria con Cucina.",
+          "dinner": "Dine at Armando al Pantheon."
+        },
         "location_metadata": {
-          "morning": {
-            "name": "The Colosseum",
-            "lat": 41.8902,
-            "lng": 12.4922,
-            "radius_meters": 100
-          },
-          "afternoon": {
-            "name": "Roscioli Salumeria con Cucina",
-            "lat": 41.8943,
-            "lng": 12.4735,
-            "radius_meters": 50
-          },
-          "evening": {
-            "name": "Armando al Pantheon",
-            "lat": 41.8996,
-            "lng": 12.4768,
-            "radius_meters": 50
+          "activities": [
+            {
+              "name": "The Colosseum",
+              "lat": 41.8902,
+              "lng": 12.4922,
+              "radius_meters": 100
+            }
+          ],
+          "meals": {
+            "breakfast": {
+              "name": "Roscioli Caffè",
+              "lat": 41.8938,
+              "lng": 12.4746,
+              "radius_meters": 50
+            },
+            "lunch": {
+              "name": "Roscioli Salumeria con Cucina",
+              "lat": 41.8943,
+              "lng": 12.4735,
+              "radius_meters": 50
+            },
+            "dinner": {
+              "name": "Armando al Pantheon",
+              "lat": 41.8996,
+              "lng": 12.4768,
+              "radius_meters": 50
+            }
           }
         }
       }

@@ -51,7 +51,8 @@ export default function GuideApp({ plan }: GuideAppProps) {
                         {activeTab === "passes" && <MoreTab />} {/* Routes to same view for now */}
 
                         {/* AI Guide Tab (Hidden instead of unmounted to keep session alive) */}
-                        <div className={`h-full w-full bg-foreground text-background ${activeTab === "guide" ? "block" : "hidden"}`}>
+                        {/* changed `block` to `flex flex-col` here */}
+                        <div className={`h-full w-full bg-foreground text-background ${activeTab === "guide" ? "flex flex-col" : "hidden"}`}>
                             <LiveTourGuide plan={plan} />
                         </div>
                     </>

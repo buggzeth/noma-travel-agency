@@ -2,10 +2,9 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-// --- Added Modality Import ---
 import { GoogleGenAI, Modality } from "@google/genai";
 import { getDistance } from "geolib";
-import { Camera, Mic, MicOff, MapPin, Loader2, StopCircle, X, MessageSquareText } from "lucide-react";
+import { Camera, Mic, StopCircle, X, MessageSquareText, Loader2 } from "lucide-react";
 import { TravelPlan } from "../home/AITravelPlanOverlay";
 import { createEphemeralToken } from "@/app/actions/gemini";
 
@@ -30,7 +29,7 @@ export default function LiveTourGuide({ plan }: LiveTourGuideProps) {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [transcripts, setTranscripts] = useState<Transcript[]>([]);
 
-  // Persistent Refs (Fixes Stale Closures in Audio Callback)
+  // Persistent Refs
   const isConnectedRef = useRef(false);
   const isConnectingRef = useRef(false);
   const sessionRef = useRef<any>(null);
@@ -52,12 +51,12 @@ export default function LiveTourGuide({ plan }: LiveTourGuideProps) {
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Auto-scroll transcripts
+  // Auto-scroll transcripts smoothly as new streaming text comes in
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [transcripts]);
 
@@ -65,7 +64,7 @@ export default function LiveTourGuide({ plan }: LiveTourGuideProps) {
 
   const ensureConnection = async (): Promise<any> => {
     if (sessionRef.current) return sessionRef.current;
-    if (isConnectingRef.current) return; // Prevent spamming connections while waking up
+    if (isConnectingRef.current) return;
 
     setIsConnecting(true);
     isConnectingRef.current = true;
@@ -87,7 +86,6 @@ export default function LiveTourGuide({ plan }: LiveTourGuideProps) {
       const session = await ai.live.connect({
         model: "gemini-2.5-flash-native-audio-preview-12-2025",
         config: {
-          // --- MATCH REQUIRED CONSTRAINTS ON CLIENT SIDE ---
           responseModalities: [Modality.AUDIO],
           inputAudioTranscription: {},
           outputAudioTranscription: {},
@@ -112,7 +110,6 @@ export default function LiveTourGuide({ plan }: LiveTourGuideProps) {
 
       sessionRef.current = session;
 
-      // Flush queued audio now that the connection is ready
       while (audioBufferQueue.current.length > 0) {
         const chunk = audioBufferQueue.current.shift();
         if (chunk) {
@@ -138,10 +135,10 @@ export default function LiveTourGuide({ plan }: LiveTourGuideProps) {
     }
 
     const content = message.serverContent;
-    if (!content) return;
+    let aiText = "";
 
     // --- AUDIO PLAYBACK ---
-    if (content.modelTurn?.parts) {
+    if (content?.modelTurn?.parts) {
       for (const part of content.modelTurn.parts) {
         if (part.inlineData?.data) {
           playAudioChunk(part.inlineData.data);
@@ -149,44 +146,68 @@ export default function LiveTourGuide({ plan }: LiveTourGuideProps) {
       }
     }
 
-    // --- AI SPEECH TEXT (Streaming Append) ---
-    if (content.outputTranscription?.text) {
+    // --- AI SPEECH TRANSCRIPT (Streaming naturally) ---
+    if (content?.outputTranscription?.text) {
+      aiText += content.outputTranscription.text;
+    }
+
+    if (aiText) {
+      if (!activeAiTranscriptIdRef.current) {
+        activeAiTranscriptIdRef.current = Date.now();
+      }
+
+      const currentId = activeAiTranscriptIdRef.current;
+
       setTranscripts(prev => {
-        if (!activeAiTranscriptIdRef.current) {
-          activeAiTranscriptIdRef.current = Date.now();
-          return [...prev, { id: activeAiTranscriptIdRef.current, role: "ai", text: content.outputTranscription.text }];
+        const existing = prev.find(t => t.id === currentId);
+        if (!existing) {
+          return [...prev, { id: currentId, role: "ai", text: aiText }];
         }
         return prev.map(t =>
-          t.id === activeAiTranscriptIdRef.current
-            ? { ...t, text: t.text + content.outputTranscription.text }
+          t.id === currentId
+            ? { ...t, text: t.text + aiText }
             : t
         );
       });
     }
 
     // --- USER SPEECH TEXT (Streaming Append) ---
-    if (content.inputTranscription?.text) {
+    let userText = "";
+    if (content?.inputTranscription?.text) {
+      userText += content.inputTranscription.text;
+    }
+
+    if (userText) {
+      if (!activeUserTranscriptIdRef.current) {
+        activeUserTranscriptIdRef.current = Date.now();
+      }
+
+      const currentId = activeUserTranscriptIdRef.current;
+
       setTranscripts(prev => {
-        if (!activeUserTranscriptIdRef.current) {
-          activeUserTranscriptIdRef.current = Date.now();
-          return [...prev, { id: activeUserTranscriptIdRef.current, role: "user", text: content.inputTranscription.text }];
+        const existing = prev.find(t => t.id === currentId);
+        if (!existing) {
+          return [...prev, { id: currentId, role: "user", text: userText }];
         }
         return prev.map(t =>
-          t.id === activeUserTranscriptIdRef.current
-            ? { ...t, text: t.text + content.inputTranscription.text }
+          t.id === currentId
+            ? { ...t, text: t.text + userText }
             : t
         );
       });
     }
 
     // If the user interrupted the AI, close the current AI bubble
-    if (content.interrupted) {
+    if (content?.interrupted) {
       activeAiTranscriptIdRef.current = null;
     }
 
     // When AI finishes its turn, close the bubble
-    if (content.generationComplete) {
+    if (content?.turnComplete) {
       activeAiTranscriptIdRef.current = null;
+
+      // Safety net: Guarantee the user gets a new bubble for their next turn!
+      activeUserTranscriptIdRef.current = null;
 
       if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
       idleTimeoutRef.current = setTimeout(() => {
@@ -240,15 +261,24 @@ export default function LiveTourGuide({ plan }: LiveTourGuideProps) {
 
         if (isCurrentlyLoud) {
           isCurrentlySpeakingRef.current = true;
-          if (vadHangoverTimerRef.current) clearTimeout(vadHangoverTimerRef.current);
-          if (idleTimeoutRef.current) clearTimeout(idleTimeoutRef.current);
+
+          // FIX: Explicitly nullify timers so they can be recreated!
+          if (vadHangoverTimerRef.current) {
+            clearTimeout(vadHangoverTimerRef.current);
+            vadHangoverTimerRef.current = null;
+          }
+          if (idleTimeoutRef.current) {
+            clearTimeout(idleTimeoutRef.current);
+            idleTimeoutRef.current = null;
+          }
+
         } else if (isCurrentlySpeakingRef.current) {
           if (!vadHangoverTimerRef.current) {
             vadHangoverTimerRef.current = setTimeout(() => {
               isCurrentlySpeakingRef.current = false;
               vadHangoverTimerRef.current = null;
 
-              // --- ADD THIS LINE: Close the user bubble after they stop speaking ---
+              // Ends the current user turn and preps a new bubble
               activeUserTranscriptIdRef.current = null;
             }, 1500);
           }
@@ -264,14 +294,12 @@ export default function LiveTourGuide({ plan }: LiveTourGuideProps) {
           for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
           const base64Audio = window.btoa(binary);
 
-          // Use the `Ref` instead of the React state variable inside closures
           if (sessionRef.current && isConnectedRef.current) {
             sessionRef.current.sendRealtimeInput({
               audio: { data: base64Audio, mimeType: "audio/pcm;rate=16000" }
             });
           } else {
             audioBufferQueue.current.push(base64Audio);
-            // Verify `isConnectingRef` to avoid duplicating network requests
             if (!isConnectingRef.current) {
               ensureConnection();
             }
@@ -411,9 +439,8 @@ export default function LiveTourGuide({ plan }: LiveTourGuideProps) {
   }, []);
 
   return (
-    // Changed: Removed 'h-full' to inherit flex sizing perfectly, changed bg-stone-900 to bg-foreground
-    <div className="relative flex-1 flex flex-col bg-foreground w-full overflow-hidden">
-      {/* Viewfinder logic hidden to limit response length (Unchanged from original code) */}
+    <div className="relative h-full flex flex-col bg-foreground w-full overflow-hidden">
+      {/* Viewfinder logic */}
       {isCameraOpen && (
         <div className="absolute inset-0 z-50 bg-black flex flex-col">
           <header className="absolute top-0 w-full p-6 flex justify-between z-10">
@@ -433,7 +460,6 @@ export default function LiveTourGuide({ plan }: LiveTourGuideProps) {
       )}
 
       {/* Main UI */}
-      {/* Changed: Adjusted padding-bottom (pb-24) to ensure content sits nicely above the bottom nav bar */}
       <div className="relative z-10 flex flex-col h-full p-6 pb-24 justify-between overflow-hidden">
         <header className="flex justify-between items-start shrink-0">
           <div>
@@ -463,18 +489,19 @@ export default function LiveTourGuide({ plan }: LiveTourGuideProps) {
 
         {/* Captions UI */}
         <div
-          ref={scrollRef}
-          className="flex-1 my-6 overflow-y-auto hide-scrollbar flex flex-col gap-4 relative mask-image-fade min-h-0"
+          className="flex-1 my-6 overflow-y-auto hide-scrollbar flex flex-col relative min-h-0"
           style={{ WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 15%, black 85%, transparent)' }}
         >
           {transcripts.length === 0 && isMicActive && (
-            <div className="m-auto text-center flex flex-col items-center gap-3 opacity-30">
+            <div className="absolute inset-0 m-auto flex flex-col items-center justify-center gap-3 opacity-30 h-fit">
               <MessageSquareText className="w-8 h-8 text-white" />
               <p className="text-white text-sm tracking-widest uppercase font-light">Speak to start</p>
             </div>
           )}
 
-          <div className="mt-auto flex flex-col gap-4 pb-8 pt-20">
+          <div className="flex-1 shrink-0"></div>
+
+          <div className="flex flex-col gap-4 pb-8 pt-12">
             {transcripts.map((t) => (
               <div key={t.id} className={`max-w-[85%] rounded-2xl p-4 ${t.role === 'user' ? 'bg-white/10 text-white self-end rounded-br-none' : 'bg-primary text-primary-foreground self-start rounded-bl-none shadow-xl'}`}>
                 <span className="text-[10px] uppercase tracking-widest opacity-50 block mb-1">
@@ -483,6 +510,8 @@ export default function LiveTourGuide({ plan }: LiveTourGuideProps) {
                 <p className="text-sm font-medium leading-relaxed">{t.text}</p>
               </div>
             ))}
+
+            <div ref={messagesEndRef} className="h-1" />
           </div>
         </div>
 

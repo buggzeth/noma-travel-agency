@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Sparkles, Loader2, History, MapPin, Calendar, Users, Check, Plus, DollarSign, ArrowUpRight } from "lucide-react";
+import { X, Sparkles, Loader2, History, MapPin, Calendar, Users, Check, Plus, DollarSign, ArrowUpRight, Clock } from "lucide-react";
 
 export type TravelPlan = {
   slug?: string;
@@ -15,22 +15,42 @@ export type TravelPlan = {
   itinerary: {
     day: number;
     title: string;
-    morning: string;
-    afternoon: string;
-    evening: string;
+    // Legacy support
+    morning?: string;
+    afternoon?: string;
+    evening?: string;
+    // New structure
+    activities?: {
+      title: string;
+      description: string;
+      estimatedTime: string;
+    }[];
+    meals?: {
+      breakfast: string;
+      lunch: string;
+      dinner: string;
+    };
     location_metadata?: {
+      // Legacy
       morning?: { name: string; lat: number; lng: number; radius_meters: number };
       afternoon?: { name: string; lat: number; lng: number; radius_meters: number };
       evening?: { name: string; lat: number; lng: number; radius_meters: number };
+      // New
+      activities?: { name: string; lat: number; lng: number; radius_meters: number }[];
+      meals?: {
+        breakfast?: { name: string; lat: number; lng: number; radius_meters: number };
+        lunch?: { name: string; lat: number; lng: number; radius_meters: number };
+        dinner?: { name: string; lat: number; lng: number; radius_meters: number };
+      }
     }
   }[];
   accommodations: {
     tier?: string;
-    name?: string; // legacy support
+    name?: string;
     description: string;
     estimatedPricePerNight?: string;
-    pricePerNight?: string; // legacy support
-    amenities?: string[] // legacy support
+    pricePerNight?: string;
+    amenities?: string[]
   }[];
   insiderTips: string[];
 };
@@ -716,20 +736,61 @@ export default function AITravelPlanOverlay({
                       </div>
                       <div className="flex-1 pb-8 border-b border-border/50 group-last:border-0 group-last:pb-0">
                         <h3 className="text-xl md:text-2xl font-serif mb-5">{day.title}</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          <div className="bg-secondary/10 p-4 border border-border/30">
-                            <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-2">Morning</span>
-                            <p className="text-sm font-light leading-relaxed">{day.morning}</p>
+
+                        {/* Check if it's the NEW data structure */}
+                        {day.activities && day.meals ? (
+                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="lg:col-span-2 space-y-4">
+                              <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block">Activities</span>
+                              <div className="space-y-4">
+                                {day.activities.map((act, i) => (
+                                  <div key={i} className="bg-secondary/10 p-4 border border-border/30">
+                                    <div className="flex justify-between items-start gap-4 mb-2">
+                                      <span className="font-serif text-lg leading-tight">{act.title}</span>
+                                      <span className="text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-1 uppercase tracking-wider whitespace-nowrap shrink-0 flex items-center gap-1">
+                                        <Clock className="w-3 h-3" /> {act.estimatedTime}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm font-light leading-relaxed">{act.description}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="space-y-4">
+                              <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block">Dining</span>
+                              <div className="bg-secondary/10 p-4 border border-border/30 space-y-4">
+                                <div>
+                                  <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-1">Breakfast</span>
+                                  <p className="text-sm font-light">{day.meals.breakfast}</p>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-1">Lunch</span>
+                                  <p className="text-sm font-light">{day.meals.lunch}</p>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-1">Dinner</span>
+                                  <p className="text-sm font-light">{day.meals.dinner}</p>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                          <div className="bg-secondary/10 p-4 border border-border/30">
-                            <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-2">Afternoon</span>
-                            <p className="text-sm font-light leading-relaxed">{day.afternoon}</p>
+                        ) : (
+                          /* Fallback for LEGACY data structure */
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="bg-secondary/10 p-4 border border-border/30">
+                              <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-2">Morning</span>
+                              <p className="text-sm font-light leading-relaxed">{day.morning}</p>
+                            </div>
+                            <div className="bg-secondary/10 p-4 border border-border/30">
+                              <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-2">Afternoon</span>
+                              <p className="text-sm font-light leading-relaxed">{day.afternoon}</p>
+                            </div>
+                            <div className="bg-secondary/10 p-4 border border-border/30">
+                              <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-2">Evening</span>
+                              <p className="text-sm font-light leading-relaxed">{day.evening}</p>
+                            </div>
                           </div>
-                          <div className="bg-secondary/10 p-4 border border-border/30">
-                            <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-2">Evening</span>
-                            <p className="text-sm font-light leading-relaxed">{day.evening}</p>
-                          </div>
-                        </div>
+                        )}
                       </div>
                     </div>
                   ))}

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { Metadata } from "next";
 import Image from "next/image";
-import { DollarSign, Calendar, Check, Sparkles } from "lucide-react";
+import { DollarSign, Calendar, Check, Sparkles, Clock } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import BookingInterface from "@/components/plans/BookingInterface";
@@ -166,7 +166,7 @@ export default async function TravelPlanPage({ params }: PageProps) {
 
         <article className="max-w-4xl mx-auto px-6 relative z-20">
 
-          {/* NEW: YouTube Video Embed */}
+          {/* YouTube Video Embed */}
           {videoId && (
             <section className="mb-12 mt-8">
               <div className="w-full aspect-video rounded-xl overflow-hidden border border-border/50 shadow-lg">
@@ -231,20 +231,62 @@ export default async function TravelPlanPage({ params }: PageProps) {
                   </div>
                   <div className="flex-1 pb-8 border-b border-border/50 group-last:border-0 group-last:pb-0">
                     <h3 className="text-xl md:text-2xl font-serif mb-5 line-clamp-2">{day.title}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="bg-secondary/10 p-4 border border-border/30">
-                        <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-2">Morning</span>
-                        <p className="text-sm font-light leading-relaxed">{day.morning}</p>
+
+                    {day.activities && day.meals ? (
+                      /* NEW FORMAT LAYOUT */
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 space-y-4">
+                          <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block">Activities</span>
+                          <div className="space-y-4">
+                            {day.activities.map((act: any, i: number) => (
+                              <div key={i} className="bg-secondary/10 p-4 border border-border/30">
+                                <div className="flex justify-between items-start gap-4 mb-2">
+                                  <span className="font-serif text-lg leading-tight">{act.title}</span>
+                                  <span className="text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-1 uppercase tracking-wider whitespace-nowrap shrink-0 flex items-center gap-1">
+                                    <Clock className="w-3 h-3" /> {act.estimatedTime}
+                                  </span>
+                                </div>
+                                <p className="text-sm font-light leading-relaxed">{act.description}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="space-y-4">
+                          <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block">Dining</span>
+                          <div className="bg-secondary/10 p-4 border border-border/30 space-y-4">
+                            <div>
+                              <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-1">Breakfast</span>
+                              <p className="text-sm font-light">{day.meals.breakfast}</p>
+                            </div>
+                            <div>
+                              <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-1">Lunch</span>
+                              <p className="text-sm font-light">{day.meals.lunch}</p>
+                            </div>
+                            <div>
+                              <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-1">Dinner</span>
+                              <p className="text-sm font-light">{day.meals.dinner}</p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <div className="bg-secondary/10 p-4 border border-border/30">
-                        <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-2">Afternoon</span>
-                        <p className="text-sm font-light leading-relaxed">{day.afternoon}</p>
+                    ) : (
+                      /* LEGACY FORMAT FALLBACK */
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-secondary/10 p-4 border border-border/30">
+                          <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-2">Morning</span>
+                          <p className="text-sm font-light leading-relaxed">{day.morning}</p>
+                        </div>
+                        <div className="bg-secondary/10 p-4 border border-border/30">
+                          <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-2">Afternoon</span>
+                          <p className="text-sm font-light leading-relaxed">{day.afternoon}</p>
+                        </div>
+                        <div className="bg-secondary/10 p-4 border border-border/30">
+                          <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-2">Evening</span>
+                          <p className="text-sm font-light leading-relaxed">{day.evening}</p>
+                        </div>
                       </div>
-                      <div className="bg-secondary/10 p-4 border border-border/30">
-                        <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-2">Evening</span>
-                        <p className="text-sm font-light leading-relaxed">{day.evening}</p>
-                      </div>
-                    </div>
+                    )}
+
                   </div>
                 </div>
               ))}
