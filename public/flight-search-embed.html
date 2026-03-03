@@ -9,8 +9,8 @@
         body {
             margin: 0;
             padding: 24px 16px;
-            background-color: #FCFBF9; /* Matches your --card variable */
-            color: #2A2B27; /* Matches your --foreground variable */
+            background-color: #ece9ce; /* Matches your --background */
+            color: #2A2B27; /* Matches your --foreground */
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             overflow-x: hidden;
         }
@@ -23,14 +23,24 @@
             gap: 32px;
         }
 
-        /* A subtle loading text while the widget boots up */
-        .loading-text {
-            text-align: center;
-            font-size: 12px;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: #7C7A76;
-            margin-bottom: -16px;
+        /* 
+          NUCLEAR CSS: 
+          Targets the exact URL structure and class name prefix you found in the console. 
+          Using display: none !important forces it to disappear entirely, closing any empty gaps.
+        */
+        a[href*="travelpayouts.com/whitelabel"],
+        a[href*="poweredby"],
+        a[class*="SearchEdit-module__referralLink"],
+        a[class*="referralLink"],
+        span[class*="referralText"] {
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            position: absolute !important;
+            z-index: -9999 !important;
         }
     </style>
 
@@ -50,5 +60,31 @@
         <div id="tpwl-search"></div>
         <div id="tpwl-tickets"></div>
     </div>
+
+    <script>
+        // Just in case the widget uses a "Shadow DOM" to protect its styles from our <head> CSS, 
+        // this script will forcefully inject our hiding rules directly into the widget's isolated DOM.
+        const injectShadowStyles = () => {
+            const css = `
+                a[href*="travelpayouts.com/whitelabel"],
+                a[class*="referralLink"] {
+                    display: none !important;
+                }
+            `;
+            
+            document.querySelectorAll('*').forEach(el => {
+                if (el.shadowRoot && !el.shadowRoot.querySelector('#noma-hider')) {
+                    const style = document.createElement('style');
+                    style.id = 'noma-hider';
+                    style.textContent = css;
+                    el.shadowRoot.appendChild(style);
+                }
+            });
+        };
+
+        // Check for shadow DOMs every 500ms as the widget loads
+        const interval = setInterval(injectShadowStyles, 500);
+        setTimeout(() => clearInterval(interval), 10000); // Stop checking after 10s
+    </script>
 </body>
 </html>

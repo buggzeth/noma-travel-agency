@@ -37,10 +37,10 @@ export default function RootLayout({
         >
           {`
             (function () {
-              var script = document.createElement("script");
-              script.async = true;
-              script.src = "https://tpembars.com/NTAyNjg1.js?t=502685";
-              document.head.appendChild(script);
+                var script = document.createElement("script");
+                script.async = 1;
+                script.src = 'https://tpembars.com/NTA0MTE1.js?t=504115';
+                document.head.appendChild(script);
             })();
           `}
         </Script>
