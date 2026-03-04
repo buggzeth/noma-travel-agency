@@ -2,7 +2,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Sparkles, Loader2, History, MapPin, Calendar, Users, Check, Plus, DollarSign, ArrowUpRight, Clock } from "lucide-react";
+import { X, Sparkles, Loader2, History, MapPin, Calendar, Users, Check, Plus, DollarSign, ArrowUpRight, Clock, Compass } from "lucide-react";
+import BookingInterface from "@/components/plans/BookingInterface";
 
 export type TravelPlan = {
   slug?: string;
@@ -688,6 +689,21 @@ export default function AITravelPlanOverlay({
                     </span>
                   </div>
                 </div>
+
+                {/* ---> ADDED 'OPEN IN GUIDE' BUTTON HERE <--- */}
+                {currentPlan.slug && (
+                  <div className="mt-8 flex justify-center w-full">
+                    <a
+                      href={`/guide/${currentPlan.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 px-6 md:px-8 py-3 md:py-4 text-xs md:text-sm font-semibold uppercase tracking-widest flex items-center gap-3 shadow-xl border border-primary/50 hover:-translate-y-1"
+                    >
+                      <Compass className="w-5 h-5 shrink-0" />
+                      Open Interactive Guide
+                    </a>
+                  </div>
+                )}
               </div>
 
               {/* Accommodations */}
@@ -697,7 +713,7 @@ export default function AITravelPlanOverlay({
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {currentPlan.accommodations.map((acc, idx) => (
-                    <div key={idx} className="border border-border/50 p-6 bg-card hover:border-foreground/30 transition-colors">
+                    <div key={idx} className="border border-border/50 p-6 bg-background hover:border-foreground/30 transition-colors">
                       <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-0 mb-3">
                         <h3 className="text-xl font-serif pr-4 line-clamp-2">{acc.tier || acc.name}</h3>
                         <span className="text-[10px] sm:text-xs bg-foreground text-background px-2 py-1 uppercase tracking-wider whitespace-nowrap shrink-0">
@@ -798,7 +814,7 @@ export default function AITravelPlanOverlay({
               </div>
 
               {/* Insider Tips */}
-              <div className="bg-primary/5 border border-primary/20 p-8 md:p-10">
+              <div className="bg-primary/5 border border-primary/20 p-8 md:p-10 mb-12">
                 <h2 className="text-2xl font-serif mb-6 flex items-center gap-3">
                   <Sparkles className="w-6 h-6 text-primary" />
                   Local Cheat Codes
@@ -812,6 +828,9 @@ export default function AITravelPlanOverlay({
                   ))}
                 </ul>
               </div>
+
+              {/* ---> ADDED BOOKING INTERFACE TO THE BOTTOM HERE <--- */}
+              <BookingInterface destination={currentPlan.destination} />
 
             </div>
           )}

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { Metadata } from "next";
 import Image from "next/image";
-import { DollarSign, Calendar, Check, Sparkles, Clock } from "lucide-react";
+import { DollarSign, Calendar, Check, Sparkles, Clock, Compass, Bed, Home } from "lucide-react"; // Added Home icon
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import BookingInterface from "@/components/plans/BookingInterface";
@@ -56,6 +56,29 @@ function getYouTubeId(url: string) {
   return (match && match[2].length === 11) ? match[2] : null;
 }
 
+// --- NEW HELPER: Build Dynamic Affiliate Links for Expedia & Vrbo ---
+function buildAffiliateLinks(destination: string, departDate: string, returnDate: string) {
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? "" : d.toISOString().split('T')[0];
+  };
+
+  const start = formatDate(departDate);
+  const end = formatDate(returnDate);
+
+  // Your specific PHG Campaign Reference ID
+  const camref = "1011l425432";
+  const encodedDest = encodeURIComponent(destination);
+
+  // Construct URLs using standard search endpoints
+  // vrbo.com/search automatically detects the user's country and redirects to the proper locale (e.g., /en-us/search)
+  const expediaUrl = `https://www.expedia.com/Hotel-Search?destination=${encodedDest}&d1=${start}&startDate=${start}&d2=${end}&endDate=${end}&adults=2&camref=${camref}`;
+  const vrboUrl = `https://www.vrbo.com/search?destination=${encodedDest}&d1=${start}&startDate=${start}&d2=${end}&endDate=${end}&adults=2&camref=${camref}`;
+
+  return { expediaUrl, vrboUrl };
+}
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
@@ -96,8 +119,6 @@ export default async function TravelPlanPage({ params }: PageProps) {
 
   const plan = data.plan_data;
   const imageUrl = await getCachedDestinationImage(plan.destination);
-
-  // Extract video ID if the url was saved
   const videoId = plan.youtubeUrl ? getYouTubeId(plan.youtubeUrl) : null;
 
   const writeDate = new Date(data.created_at).toLocaleDateString("en-US", {
@@ -105,6 +126,9 @@ export default async function TravelPlanPage({ params }: PageProps) {
     month: "long",
     day: "numeric",
   });
+
+  // Generate dynamic URLs for both platforms
+  const { expediaUrl, vrboUrl } = buildAffiliateLinks(plan.destination, plan.departDate, plan.returnDate);
 
   return (
     <>
@@ -161,12 +185,21 @@ export default async function TravelPlanPage({ params }: PageProps) {
                 </span>
               </div>
             </div>
+
+            <div className="mt-8 md:mt-10 flex flex-col sm:flex-row w-full justify-center gap-4 px-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+              <a
+                href={`/guide/${resolvedParams.slug}`}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 px-6 md:px-8 py-3 md:py-4 text-xs md:text-sm font-semibold uppercase tracking-widest flex items-center justify-center gap-3 shadow-2xl border border-primary/50"
+              >
+                <Compass className="w-5 h-5 shrink-0" />
+                Open Interactive Guide
+              </a>
+            </div>
           </div>
         </section>
 
         <article className="max-w-4xl mx-auto px-6 relative z-20">
 
-          {/* YouTube Video Embed */}
           {videoId && (
             <section className="mb-12 mt-8">
               <div className="w-full aspect-video rounded-xl overflow-hidden border border-border/50 shadow-lg">
@@ -183,16 +216,39 @@ export default async function TravelPlanPage({ params }: PageProps) {
             </section>
           )}
 
-          <BookingInterface destination={plan.destination} />
-
-          {/* Accommodations */}
+          {/* Accommodations - Expedia & Vrbo Deep Links */}
           <section className="mb-16 mt-8">
-            <h2 className="text-2xl md:text-3xl font-serif mb-8 flex items-center gap-3 border-b border-border/50 pb-4">
-              Where to Drop Your Bags
-            </h2>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8 border-b border-border/50 pb-4">
+              <h2 className="text-2xl md:text-3xl font-serif flex items-center gap-3">
+                Where to Drop Your Bags
+              </h2>
+              {plan.departDate && plan.returnDate && (
+                <div className="flex flex-wrap items-center gap-3">
+                  <a
+                    href={expediaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#00355f] text-white hover:bg-[#002847] transition-all duration-300 px-4 py-2.5 text-[10px] md:text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg border border-[#00355f]/50"
+                  >
+                    <Bed className="w-4 h-4 shrink-0" />
+                    Hotels on Expedia
+                  </a>
+                  <a
+                    href={vrboUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#002B49] text-white hover:bg-[#001f35] transition-all duration-300 px-4 py-2.5 text-[10px] md:text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg border border-[#002B49]/50"
+                  >
+                    <Home className="w-4 h-4 shrink-0" />
+                    Rentals on Vrbo
+                  </a>
+                </div>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {plan.accommodations.map((acc: any, idx: number) => (
-                <div key={idx} className="border border-border/50 p-6 bg-card hover:border-foreground/30 transition-colors">
+                <div key={idx} className="border border-border/50 p-6 bg-background hover:border-foreground/30 transition-colors">
                   <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-0 mb-3">
                     <h3 className="text-xl font-serif pr-4 line-clamp-2">{acc.tier || acc.name}</h3>
                     <span className="text-[10px] sm:text-xs bg-foreground text-background px-2 py-1 uppercase tracking-wider whitespace-nowrap shrink-0">
@@ -233,7 +289,6 @@ export default async function TravelPlanPage({ params }: PageProps) {
                     <h3 className="text-xl md:text-2xl font-serif mb-5 line-clamp-2">{day.title}</h3>
 
                     {day.activities && day.meals ? (
-                      /* NEW FORMAT LAYOUT */
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-2 space-y-4">
                           <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block">Activities</span>
@@ -270,7 +325,6 @@ export default async function TravelPlanPage({ params }: PageProps) {
                         </div>
                       </div>
                     ) : (
-                      /* LEGACY FORMAT FALLBACK */
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="bg-secondary/10 p-4 border border-border/30">
                           <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-2">Morning</span>
@@ -294,7 +348,7 @@ export default async function TravelPlanPage({ params }: PageProps) {
           </section>
 
           {/* Insider Tips */}
-          <section className="bg-primary/5 border border-primary/20 p-8 md:p-10">
+          <section className="bg-primary/5 border border-primary/20 p-8 md:p-10 mb-12">
             <h2 className="text-2xl font-serif mb-6 flex items-center gap-3">
               <Sparkles className="w-6 h-6 text-primary shrink-0" />
               Local Cheat Codes
@@ -308,6 +362,8 @@ export default async function TravelPlanPage({ params }: PageProps) {
               ))}
             </ul>
           </section>
+
+          <BookingInterface destination={plan.destination} />
 
         </article>
       </main>
