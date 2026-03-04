@@ -269,9 +269,18 @@ export default async function TravelPlanPage({ params }: PageProps) {
               ))}
             </div>
           </section>
+        </article>
+
+        {/* TIQETS WIDGET BREAKOUT: Edge-to-edge on mobile, matches padding on desktop */}
+        <div className="max-w-4xl mx-auto md:px-6 relative z-20">
+          <TiqetsWidget destination={plan.destination} />
+        </div>
+
+        {/* Re-open article wrapper to restore padding for remaining content */}
+        <article className="max-w-4xl mx-auto px-6 relative z-20">
 
           {/* Itinerary */}
-          <section className="mb-16">
+          <section className="mb-16 mt-4">
             <h2 className="text-2xl md:text-3xl font-serif mb-8 border-b border-border/50 pb-4">The Agenda</h2>
             <div className="space-y-8">
               {plan.itinerary.map((day: any) => (
@@ -399,8 +408,6 @@ export default async function TravelPlanPage({ params }: PageProps) {
               ))}
             </ul>
           </section>
-
-          <TiqetsWidget destination={plan.destination} />
 
         </article>
       </main>

@@ -47,11 +47,11 @@ export default function TiqetsWidget({ destination }: Props) {
 
     if (loading) {
         return (
-            <section className="mb-12 mt-12 border border-border/50 bg-secondary/5 p-6 md:p-8 animate-pulse">
-                <div className="h-8 w-64 bg-border/50 mb-6 rounded"></div>
-                <div className="flex gap-4 overflow-hidden">
+            <section className="mb-12 mt-12 border-y md:border border-border/50 bg-secondary/5 py-6 md:p-8 animate-pulse">
+                <div className="h-8 w-64 bg-border/50 mb-6 mx-4 md:mx-0 rounded"></div>
+                <div className="flex gap-4 md:gap-6 overflow-hidden px-4 md:px-0">
                     {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="min-w-[280px] h-72 bg-border/30 rounded border border-border/50 shrink-0"></div>
+                        <div key={i} className="w-[85vw] max-w-[280px] md:max-w-none md:w-[320px] h-72 bg-border/30 rounded border border-border/50 shrink-0"></div>
                     ))}
                 </div>
             </section>
@@ -61,8 +61,8 @@ export default function TiqetsWidget({ destination }: Props) {
     if (error || experiences.length === 0) return null;
 
     return (
-        <section className="mb-12 mt-12 border border-border/50 bg-secondary/5 p-6 md:p-8 overflow-hidden">
-            <div className="flex items-center justify-between mb-6">
+        <section className="mb-12 mt-12 border-y md:border border-border/50 bg-secondary/5 py-6 md:p-8">
+            <div className="flex items-center justify-between mb-6 px-4 md:px-0">
                 <div className="flex items-center gap-3">
                     <Ticket className="w-6 h-6 text-primary shrink-0" />
                     <h2 className="text-2xl font-serif">Top Local Experiences</h2>
@@ -72,17 +72,15 @@ export default function TiqetsWidget({ destination }: Props) {
                 </div>
             </div>
 
-            <div className="flex overflow-x-auto snap-x snap-mandatory gap-6 pb-6 pt-2 [-ms-overflow-style:none] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-primary/50 transition-colors">
-
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-6 pb-6 pt-2 px-4 md:px-0 [-ms-overflow-style:none] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/50 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-primary/50 transition-colors">
                 {experiences.map((exp) => {
-                    // Experiences reliably contain the high-res image arrays
                     const imgObj = exp.images?.[0];
                     const imageUrl = imgObj?.large || imgObj?.medium || imgObj?.small || "https://images.unsplash.com/photo-1488085061387-422e29b40080?q=80&w=1000&auto=format&fit=crop";
 
                     return (
                         <div
                             key={exp.id}
-                            className="min-w-[280px] w-[280px] md:min-w-[320px] md:w-[320px] shrink-0 snap-start flex flex-col bg-background border border-border/50 hover:border-foreground/30 transition-colors group shadow-sm hover:shadow-md"
+                            className="w-[85vw] max-w-[280px] md:max-w-none md:w-[320px] shrink-0 snap-start flex flex-col bg-background border border-border/50 hover:border-foreground/30 transition-colors group shadow-sm hover:shadow-md"
                         >
                             <div className="relative w-full aspect-[4/3] overflow-hidden bg-secondary/20 border-b border-border/50">
                                 <img
@@ -93,7 +91,7 @@ export default function TiqetsWidget({ destination }: Props) {
                                 />
 
                                 {exp.from_price && (
-                                    <div className="absolute top-3 right-3 bg-background/95 backdrop-blur-md text-foreground px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold shadow-lg border border-border/50">
+                                    <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-background/95 backdrop-blur-md text-foreground px-2 py-1 sm:px-2.5 text-[10px] uppercase tracking-wider font-bold shadow-lg border border-border/50 max-w-[90%] truncate text-right">
                                         From {exp.currency} {exp.from_price}
                                     </div>
                                 )}
