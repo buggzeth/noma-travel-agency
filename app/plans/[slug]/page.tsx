@@ -7,6 +7,8 @@ import { DollarSign, Calendar, Check, Sparkles, Clock, Compass, Bed, Home } from
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import BookingInterface from "@/components/plans/BookingInterface";
+import AccommodationLinks from "@/components/plans/AccommodationLinks";
+import TiqetsWidget from "@/components/plans/TiqetsWidget";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -102,6 +104,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: "article",
     },
   };
+}
+
+// --- NEW HELPER: Build TripAdvisor Search Deep Link ---
+function getTripAdvisorLink(itemName: string, destination: string) {
+  const query = encodeURIComponent(`${itemName} ${destination}`);
+  const cid = "7891276"; // Your TripAdvisor CID
+  return `https://www.tripadvisor.com/Search?q=${query}&cid=${cid}`;
 }
 
 export default async function TravelPlanPage({ params }: PageProps) {
@@ -216,34 +225,19 @@ export default async function TravelPlanPage({ params }: PageProps) {
             </section>
           )}
 
-          {/* Accommodations - Expedia & Vrbo Deep Links */}
+          {/* Accommodations */}
           <section className="mb-16 mt-8">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8 border-b border-border/50 pb-4">
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-8 border-b border-border/50 pb-4">
               <h2 className="text-2xl md:text-3xl font-serif flex items-center gap-3">
                 Where to Drop Your Bags
               </h2>
-              {plan.departDate && plan.returnDate && (
-                <div className="flex flex-wrap items-center gap-3">
-                  <a
-                    href={expediaUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-[#00355f] text-white hover:bg-[#002847] transition-all duration-300 px-4 py-2.5 text-[10px] md:text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg border border-[#00355f]/50"
-                  >
-                    <Bed className="w-4 h-4 shrink-0" />
-                    Hotels on Expedia
-                  </a>
-                  <a
-                    href={vrboUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-[#002B49] text-white hover:bg-[#001f35] transition-all duration-300 px-4 py-2.5 text-[10px] md:text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg border border-[#002B49]/50"
-                  >
-                    <Home className="w-4 h-4 shrink-0" />
-                    Rentals on Vrbo
-                  </a>
-                </div>
-              )}
+
+              {/* NEW: Insert the Client Component here */}
+              <AccommodationLinks
+                destination={plan.destination}
+                departDate={plan.departDate}
+                returnDate={plan.returnDate}
+              />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -290,37 +284,80 @@ export default async function TravelPlanPage({ params }: PageProps) {
 
                     {day.activities && day.meals ? (
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                        {/* ACTIVITIES */}
                         <div className="lg:col-span-2 space-y-4">
                           <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block">Activities</span>
                           <div className="space-y-4">
                             {day.activities.map((act: any, i: number) => (
-                              <div key={i} className="bg-secondary/10 p-4 border border-border/30">
+                              <div key={i} className="bg-secondary/10 p-4 border border-border/30 group/act relative">
                                 <div className="flex justify-between items-start gap-4 mb-2">
                                   <span className="font-serif text-lg leading-tight">{act.title}</span>
                                   <span className="text-[10px] bg-primary/10 text-primary border border-primary/20 px-2 py-1 uppercase tracking-wider whitespace-nowrap shrink-0 flex items-center gap-1">
                                     <Clock className="w-3 h-3" /> {act.estimatedTime}
                                   </span>
                                 </div>
-                                <p className="text-sm font-light leading-relaxed">{act.description}</p>
+                                <p className="text-sm font-light leading-relaxed mb-3">{act.description}</p>
+
+                                {/* TripAdvisor Activity Link */}
+                                <a
+                                  href={getTripAdvisorLink(act.title, plan.destination)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[10px] font-semibold uppercase tracking-widest text-foreground/50 hover:text-primary transition-colors flex items-center gap-1"
+                                >
+                                  Check on TripAdvisor ↗
+                                </a>
                               </div>
                             ))}
                           </div>
                         </div>
+
+                        {/* DINING */}
                         <div className="space-y-4">
                           <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block">Dining</span>
-                          <div className="bg-secondary/10 p-4 border border-border/30 space-y-4">
+                          <div className="bg-secondary/10 p-4 border border-border/30 space-y-5">
+
+                            {/* Example for Breakfast (Repeat for Lunch/Dinner) */}
                             <div>
                               <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-1">Breakfast</span>
-                              <p className="text-sm font-light">{day.meals.breakfast}</p>
+                              <p className="text-sm font-light mb-1.5">{day.meals.breakfast}</p>
+                              <a
+                                href={getTripAdvisorLink(day.meals.breakfast, plan.destination)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] font-semibold uppercase tracking-widest text-foreground/50 hover:text-primary transition-colors flex items-center gap-1"
+                              >
+                                Read Reviews ↗
+                              </a>
                             </div>
+
                             <div>
                               <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-1">Lunch</span>
-                              <p className="text-sm font-light">{day.meals.lunch}</p>
+                              <p className="text-sm font-light mb-1.5">{day.meals.lunch}</p>
+                              <a
+                                href={getTripAdvisorLink(day.meals.lunch, plan.destination)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] font-semibold uppercase tracking-widest text-foreground/50 hover:text-primary transition-colors flex items-center gap-1"
+                              >
+                                Read Reviews ↗
+                              </a>
                             </div>
+
                             <div>
                               <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-1">Dinner</span>
-                              <p className="text-sm font-light">{day.meals.dinner}</p>
+                              <p className="text-sm font-light mb-1.5">{day.meals.dinner}</p>
+                              <a
+                                href={getTripAdvisorLink(day.meals.dinner, plan.destination)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] font-semibold uppercase tracking-widest text-foreground/50 hover:text-primary transition-colors flex items-center gap-1"
+                              >
+                                Read Reviews ↗
+                              </a>
                             </div>
+
                           </div>
                         </div>
                       </div>
@@ -363,7 +400,7 @@ export default async function TravelPlanPage({ params }: PageProps) {
             </ul>
           </section>
 
-          <BookingInterface destination={plan.destination} />
+          <TiqetsWidget destination={plan.destination} />
 
         </article>
       </main>
