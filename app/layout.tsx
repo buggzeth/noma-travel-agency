@@ -28,22 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <Script
-          id="tpembars-loader"
-          strategy="afterInteractive"
-          data-noptimize="1"
-          data-cfasync="false"
-          data-wpfc-render="false"
-        >
-          {`
-            (function () {
-                var script = document.createElement("script");
-                script.async = 1;
-                script.src = 'https://tpembars.com/NTA0MTE1.js?t=504115';
-                document.head.appendChild(script);
-            })();
-          `}
-        </Script>
+
       </head>
       <body className={`${playfair.variable} ${outfit.variable} font-sans antialiased`} suppressHydrationWarning>
         {children}

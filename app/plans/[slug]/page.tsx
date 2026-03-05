@@ -1,9 +1,10 @@
 // app/plans/[slug]/page.tsx
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { Metadata } from "next";
 import Image from "next/image";
-import { DollarSign, Calendar, Check, Sparkles, Clock, Compass, Bed, Home } from "lucide-react"; // Added Home icon
+import { DollarSign, Calendar, Check, Sparkles, Clock, Compass, Bed, Home, Ticket, Info } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import BookingInterface from "@/components/plans/BookingInterface";
@@ -74,7 +75,6 @@ function buildAffiliateLinks(destination: string, departDate: string, returnDate
   const encodedDest = encodeURIComponent(destination);
 
   // Construct URLs using standard search endpoints
-  // vrbo.com/search automatically detects the user's country and redirects to the proper locale (e.g., /en-us/search)
   const expediaUrl = `https://www.expedia.com/Hotel-Search?destination=${encodedDest}&d1=${start}&startDate=${start}&d2=${end}&endDate=${end}&adults=2&camref=${camref}`;
   const vrboUrl = `https://www.vrbo.com/search?destination=${encodedDest}&d1=${start}&startDate=${start}&d2=${end}&endDate=${end}&adults=2&camref=${camref}`;
 
@@ -113,6 +113,130 @@ function getTripAdvisorLink(itemName: string, destination: string) {
   return `https://www.tripadvisor.com/Search?q=${query}&cid=${cid}`;
 }
 
+// --- NEW HELPER: Sanitize & Build Search Strategy for Tiqets ---
+function buildTiqetsSearchQueries(activityName: string, destination: string): string[] {
+  // 1. Remove punctuation (hyphens, commas, quotes, etc.) and replace with spaces
+  let cleanActivity = activityName.replace(/[^\w\s]/gi, ' ');
+
+  // 2. Remove common AI itinerary verbs & stop words that confuse search engines
+  // e.g., "Guided tour of the Colosseum" -> "Colosseum"
+  const stopWords = /\b(visit|tour|guided|explore|experience|discover|the|a|an|of|in|at|and|to)\b/gi;
+  cleanActivity = cleanActivity.replace(stopWords, ' ');
+
+  // 3. Clean up extra spaces
+  cleanActivity = cleanActivity.replace(/\s+/g, ' ').trim();
+
+  // 4. Extract just the main destination city name (e.g., "Paris, France" -> "Paris")
+  const cleanDestination = destination.split(',')[0].trim();
+
+  // Return an array of query strategies, from most specific to broadest
+  // We filter out anything too short to avoid overly generic or empty API queries
+  return [
+    `${cleanActivity} ${cleanDestination}`, // Attempt 1: e.g., "Louvre Museum Paris"
+    cleanActivity,                          // Attempt 2: e.g., "Louvre Museum"
+  ].filter(q => q.length > 3);
+}
+
+// --- UPDATED HELPER COMPONENT: Fetch specific activity from Tiqets ---
+async function TiqetsActivityLink({ activityName, destination }: { activityName: string, destination: string }) {
+  const PARTNER_ID = "noma-184635";
+  const queries = buildTiqetsSearchQueries(activityName, destination);
+
+  if (queries.length === 0) return null;
+
+  try {
+    let matchedProduct = null;
+
+    // Execute our cascading search strategy
+    for (const query of queries) {
+      const res = await fetch(
+        `https://api.tiqets.com/v2/products?query=${encodeURIComponent(query)}&page_size=1`,
+        {
+          headers: {
+            "Authorization": `Token ${process.env.TIQETS_API_KEY}`,
+            "User-Agent": "NOMA-Travel-App/1.0"
+          },
+          next: { revalidate: 86400 } // Cache results for 24h
+        }
+      );
+
+      if (!res.ok) continue;
+
+      const data = await res.json();
+
+      if (data.products && data.products.length > 0) {
+        matchedProduct = data.products[0];
+        break; // Match found! Stop the loop
+      }
+    }
+
+    if (!matchedProduct) return null;
+
+    // Start with the product URL as our safe fallback
+    let finalUrl = matchedProduct.product_url;
+
+    // Attempt to "upgrade" to the parent Experience URL using venue.id
+    if (matchedProduct.venue && matchedProduct.venue.id) {
+      try {
+        const expRes = await fetch(
+          `https://api.tiqets.com/v2/experiences/${matchedProduct.venue.id}`,
+          {
+            headers: {
+              "Authorization": `Token ${process.env.TIQETS_API_KEY}`,
+              "User-Agent": "NOMA-Travel-App/1.0"
+            },
+            next: { revalidate: 86400 } // Cache results for 24h
+          }
+        );
+
+        if (expRes.ok) {
+          const expData = await expRes.json();
+          if (expData.experience && expData.experience.experience_url) {
+            finalUrl = expData.experience.experience_url;
+          }
+        }
+      } catch (err) {
+        // Silently ignore experience fetch errors; we'll just use the product_url fallback
+        console.error("Failed to upgrade to experience URL:", err);
+      }
+    }
+
+    // Safety check just in case the API returned nothing at all
+    if (!finalUrl) return null;
+
+    const separator = finalUrl.includes("?") ? "&" : "?";
+    const affiliateUrl = `${finalUrl}${separator}partner=${PARTNER_ID}`;
+
+    return (
+      <div className="flex items-center gap-1.5">
+        <a
+          href={affiliateUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[10px] font-semibold uppercase tracking-widest text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+        >
+          Tickets ↗
+        </a>
+
+        {/* Tooltip Container */}
+        <div className="relative group/tiqets-info flex items-center justify-center">
+          <Info className="w-3.5 h-3.5 text-foreground/40 hover:text-primary transition-colors cursor-help" />
+
+          {/* Tooltip Content */}
+          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-foreground text-background text-[10px] font-medium leading-relaxed p-2 rounded opacity-0 invisible group-hover/tiqets-info:opacity-100 group-hover/tiqets-info:visible transition-all duration-200 shadow-xl z-50 text-center pointer-events-none">
+            Verify the activity details and location before booking
+
+            {/* Tooltip Arrow pointing down */}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-[5px] border-transparent border-t-foreground" />
+          </div>
+        </div>
+      </div>
+    );
+  } catch (error) {
+    return null;
+  }
+}
+
 export default async function TravelPlanPage({ params }: PageProps) {
   const resolvedParams = await params;
 
@@ -136,7 +260,6 @@ export default async function TravelPlanPage({ params }: PageProps) {
     day: "numeric",
   });
 
-  // Generate dynamic URLs for both platforms
   const { expediaUrl, vrboUrl } = buildAffiliateLinks(plan.destination, plan.departDate, plan.returnDate);
 
   return (
@@ -232,7 +355,6 @@ export default async function TravelPlanPage({ params }: PageProps) {
                 Where to Drop Your Bags
               </h2>
 
-              {/* NEW: Insert the Client Component here */}
               <AccommodationLinks
                 destination={plan.destination}
                 departDate={plan.departDate}
@@ -271,7 +393,7 @@ export default async function TravelPlanPage({ params }: PageProps) {
           </section>
         </article>
 
-        {/* TIQETS WIDGET BREAKOUT: Edge-to-edge on mobile, matches padding on desktop */}
+        {/* TIQETS WIDGET BREAKOUT */}
         <div className="max-w-4xl mx-auto md:px-6 relative z-20">
           <TiqetsWidget destination={plan.destination} />
         </div>
@@ -308,15 +430,22 @@ export default async function TravelPlanPage({ params }: PageProps) {
                                 </div>
                                 <p className="text-sm font-light leading-relaxed mb-3">{act.description}</p>
 
-                                {/* TripAdvisor Activity Link */}
-                                <a
-                                  href={getTripAdvisorLink(act.title, plan.destination)}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-[10px] font-semibold uppercase tracking-widest text-foreground/50 hover:text-primary transition-colors flex items-center gap-1"
-                                >
-                                  Check on TripAdvisor ↗
-                                </a>
+                                {/* Activity External Links */}
+                                <div className="flex flex-wrap items-center gap-4 mt-1">
+                                  <a
+                                    href={getTripAdvisorLink(act.title, plan.destination)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[10px] font-semibold uppercase tracking-widest text-foreground/50 hover:text-foreground transition-colors flex items-center gap-1"
+                                  >
+                                    TripAdvisor ↗
+                                  </a>
+
+                                  {/* Using Suspense allows NextJS to seamlessly stream in the Tiqets widget links once they load */}
+                                  <Suspense fallback={<div className="w-20 h-3 animate-pulse bg-primary/10 rounded"></div>}>
+                                    <TiqetsActivityLink activityName={act.title} destination={plan.destination} />
+                                  </Suspense>
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -327,7 +456,6 @@ export default async function TravelPlanPage({ params }: PageProps) {
                           <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block">Dining</span>
                           <div className="bg-secondary/10 p-4 border border-border/30 space-y-5">
 
-                            {/* Example for Breakfast (Repeat for Lunch/Dinner) */}
                             <div>
                               <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/40 block mb-1">Breakfast</span>
                               <p className="text-sm font-light mb-1.5">{day.meals.breakfast}</p>
