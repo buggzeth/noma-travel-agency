@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from "react";
 import { X, Sparkles, Loader2, History, MapPin, Calendar, Users, Check, Plus, DollarSign, ArrowUpRight, Clock, Compass } from "lucide-react";
-import BookingInterface from "@/components/plans/BookingInterface";
 
 export type TravelPlan = {
   slug?: string;
@@ -829,8 +828,6 @@ export default function AITravelPlanOverlay({
                 </ul>
               </div>
 
-              {/* ---> ADDED BOOKING INTERFACE TO THE BOTTOM HERE <--- */}
-              <BookingInterface destination={currentPlan.destination} />
 
             </div>
           )}

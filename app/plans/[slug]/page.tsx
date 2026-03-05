@@ -7,7 +7,6 @@ import Image from "next/image";
 import { DollarSign, Calendar, Check, Sparkles, Clock, Compass, Bed, Home, Ticket, Info } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import BookingInterface from "@/components/plans/BookingInterface";
 import AccommodationLinks from "@/components/plans/AccommodationLinks";
 import TiqetsWidget from "@/components/plans/TiqetsWidget";
 
