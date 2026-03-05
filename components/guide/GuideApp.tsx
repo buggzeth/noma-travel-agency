@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic"; // 1. Import dynamic
 import { TravelPlan } from "../home/AITravelPlanOverlay";
 import LiveTourGuide from "./LiveTourGuide";
 import BottomNav from "./BottomNav";
@@ -9,9 +10,18 @@ import BottomNav from "./BottomNav";
 // Tabs
 import WelcomeTab from "./tabs/WelcomeTab";
 //import TransitTab from "./tabs/TransitTab";
-import TodayTab from "./tabs/TodayTab";
 import ItineraryTab from "./tabs/ItineraryTab";
 import MoreTab from "./tabs/MoreTab";
+
+// 2. Dynamically import TodayTab and disable Server-Side Rendering (SSR)
+const TodayTab = dynamic(() => import("./tabs/TodayTab"), {
+    ssr: false,
+    loading: () => (
+        <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground bg-background">
+            Loading Map...
+        </div>
+    )
+});
 
 export type TabType = "welcome" | "transit" | "today" | "itinerary" | "guide" | "more" | "passes";
 
@@ -45,7 +55,9 @@ export default function GuideApp({ plan }: GuideAppProps) {
                 {/* ON-TRIP */}
                 {isTripStarted && (
                     <>
+                        {/* 3. Usage remains exactly the same! */}
                         {activeTab === "today" && <TodayTab plan={plan} />}
+
                         {activeTab === "itinerary" && <ItineraryTab plan={plan} />}
                         {activeTab === "more" && <MoreTab />}
                         {activeTab === "passes" && <MoreTab />} {/* Routes to same view for now */}
